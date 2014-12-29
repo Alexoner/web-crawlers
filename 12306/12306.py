@@ -24,9 +24,25 @@ sys.setdefaultencoding('utf-8')
 # global variables
 RET_OK = 0
 RET_ERR = -1
-MAX_TRIES = 3
+MAX_TRIES = 2
 MAX_DAYS = 60
 stations = []
+
+cards = {
+        '1': u'二代身份证',
+        '2': u'一代身份证',
+        'C': u'港澳通行证',
+        'G': u'台湾通行证',
+        'B': u'护照'
+    }
+
+Tickets = {
+        '1': u'成人票',
+        '2': u'儿童票',
+        '3': u'学生票',
+        '4': u'残军票'
+    }
+
 seatMaps = [
     ('1', u'硬座'),  # 硬座/无座
     ('3', u'硬卧'),
@@ -62,24 +78,12 @@ def date2UTC(d):
 
 
 def getCardType(key):
-    d = {
-        '1': u'二代身份证',
-        '2': u'一代身份证',
-        'C': u'港澳通行证',
-        'G': u'台湾通行证',
-        'B': u'护照'
-    }
-    return d[key] if key in d else u'未知证件类型'
+
+    return cards[key] if key in cards else u'未知证件类型'
 
 
 def getTicketType(key):
-    d = {
-        '1': u'成人票',
-        '2': u'儿童票',
-        '3': u'学生票',
-        '4': u'残军票'
-    }
-    return d[key] if key in d else u'未知票种'
+    return Tickets[key] if key in Tickets else u'未知票种'
 
 
 def getSeatType(key):
@@ -437,6 +441,7 @@ class TicketOrder(object):
                 self.session.headers.update({key: d[url][key]})
             else:
                 self.session.headers.update({key: None})
+
     def get(self, url):
         self.updateHeaders(url)
         tries = 0
@@ -535,12 +540,15 @@ class TicketOrder(object):
             print(u'站点数据库初始化失败, 请求异常')
             return None
         data = r.text
+
+        # tuples are split by '@'
         station_list = data.split('@')
         if len(station_list) < 1:
             print(u'站点数据库初始化失败, 数据异常')
             return None
         station_list = station_list[1:]
         for station in station_list:
+            # items in each tuple are separated by '|'
             items = station.split('|')  # bji|北京|BJP|beijing|bj|2
             if len(items) < 5:
                 print(u'忽略无效站点: %s' % (items))
@@ -594,6 +602,7 @@ class TicketOrder(object):
         if not checkDate(self.train_date):
             print(u'乘车日期无效, 请重新选择')
             self.train_date = selectDate()
+
         # 分析乘客信息
         self.passengers = []
         index = 1
@@ -729,6 +738,7 @@ class TicketOrder(object):
             ('randCode', self.captcha),
             ('randCode_validate', ''),
             #('ODg3NzQ0', 'OTIyNmFhNmQwNmI5ZmQ2OA%3D%3D'),
+            ('NDU4MjQ0','YzM1ZjE5NTBiZmE4YzBiNw==')
             ('myversion', 'undefined')
         ]
         payload = urllib.urlencode(parameters)
@@ -1496,7 +1506,7 @@ def main():
     else:
         #print(u'失败次数太多,自动退出程序')
         #sys.exit()
-        print(u'Login failure,you can only query tickets!')
+        print(u'登陆失败，但是你仍然可以进行查票操作!')
     order.selectPassengers(1)
 
     while True:
