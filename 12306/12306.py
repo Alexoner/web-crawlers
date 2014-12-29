@@ -1489,14 +1489,15 @@ def main():
         # 有票时自动发送邮件通知
         order.notify['mail_enable'] = 1 if args.mail == '1' else 0
     tries = 0
-    #while tries < MAX_TRIES:
-        #tries += 1
-        #if order.login() == RET_OK:
-            #break
-    #else:
+    while tries < MAX_TRIES:
+        tries += 1
+        if order.login() == RET_OK:
+            break
+    else:
         #print(u'失败次数太多,自动退出程序')
         #sys.exit()
-    #order.selectPassengers(1)
+        print(u'Login failure,you can only query tickets!')
+    order.selectPassengers(1)
 
     while True:
         time.sleep(1)
