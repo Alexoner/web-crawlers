@@ -7,6 +7,9 @@ import urllib2
 url_search = 'http://wiki.963110.com.cn/index.php?search-default'
 
 def query_crop(name=""):
+    """
+        查询农作物信息
+    """
     #try:
     if name == "":
         return
