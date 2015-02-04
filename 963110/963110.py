@@ -13,18 +13,20 @@ def query_crop(name=""):
     """
         查询农作物信息
     """
-    #try:
-    if name == "":
-        return
-    data = {"searchtext":"","full":"1"}
-    data["searchtext"] = name
-    payload = urllib.urlencode(data)
-    req = urllib2.urlopen(url_search,payload)
-    line = req.read()
-    dump2file(line,"/tmp/log")
-    extract_article(line)
-    #except BaseException,e:
-        #print e
+    try:
+        if name == "":
+            return
+        data = {"searchtext":"","full":"1"}
+        data["searchtext"] = name
+        payload = urllib.urlencode(data)
+        req = urllib2.urlopen(url_search,payload)
+        line = req.read()
+        dump2file(line,"/tmp/log")
+        extract_article(line)
+    except BaseException,e:
+        print e
+    finally:
+        pass
 
 def extract_article(page):
     if page is None:
@@ -40,8 +42,11 @@ def extract_article(page):
 def get_latest_news():
     req = urllib2.urlopen(url_news)
     page = req.read()
-    dump2file(page,"/tmp/log")
-    return extract_news(page)
+    results = extract_news(page)
+    for result in results:
+        #dump2file(result+"\n","/tmp/log","a+")
+        dump2file((str(result)+"\n"),"/tmp/log","a+")
+    return results
 
 def extract_news(page):
     if page is None:
@@ -71,12 +76,12 @@ def extract_news(page):
     return results
 
 
-def dump2file(data,filename):
+def dump2file(data,filename,mode="w"):
     if data is not None and filename is not None:
-        with open(filename,"w") as fp:
+        with open(filename,mode) as fp:
             fp.write(data)
 
 if __name__ == "__main__":
     #query_crop("香蕉")
     for i in get_latest_news():
-        print i
+        print str(i)
