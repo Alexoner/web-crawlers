@@ -75,6 +75,11 @@ def extract_news(page):
             print e
     return results
 
+def foo():
+    url = "http://toy1.weather.com.cn/search?cityname=%E6%9D%AD%E5%B7%9E&callback=success_jsonpCallback&_="+str(int(time.time()*1000))
+    req = urllib2.urlopen(url)
+    page = req.read()
+    return page
 
 def dump2file(data,filename,mode="w"):
     if data is not None and filename is not None:
