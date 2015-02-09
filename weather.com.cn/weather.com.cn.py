@@ -6,6 +6,7 @@ import urllib2
 import time
 from bs4 import BeautifulSoup
 import re
+import sys
 
 
 def set_headers(base_url):
@@ -121,21 +122,39 @@ def get_city_detail(city_code):
     url = base_url + city_code + ".html?"
     headers = set_headers(base_url)
     headers['Referer'] = headers['Referer'].format(city_code)
-    print headers
     data = [("_",str(int(time.time()*1000)))]
     payload = urllib.urlencode(data)
     url = url + "{0}".format(payload)
     print "Request URL: " + url
     req = urllib2.Request(url,data=None,headers=headers)
     f = urllib2.urlopen(req)
-    print "HTTP Code: " + str(f.getcode()) + f.msg
     results = f.read()
     with open("/tmp/log","w") as fp:
         fp.write(results)
-    return results
+    import StringIO
+    import gzip
+    data = StringIO.StringIO(results)
+    gzipper = gzip.GzipFile(fileobj=data)
+    html = gzipper.read()
+    info = parse_city_detail(html)
+    return info
+
+def parse_city_detail(html):
+    pattern_all = re.compile(r'(\{.+?\})')
+    weather_info = pattern_all.findall(html)[0]
+    #print weather_info
+    import json
+    #info = dict(weather_info[0])
+    info = json.loads(weather_info)
+    return weather_info
 
 
 if __name__ == "__main__":
-    city_detail = search_city_weather("扬州")
+    city_name = ""
+    if len(sys.argv) > 1:
+        city_name = sys.argv[1]
+    else:
+        city_name = "扬州"
+    city_detail = search_city_weather(city_name)
     print str(city_detail)
     #print search_city_weather("hangzhou").__class__
