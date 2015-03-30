@@ -91,8 +91,8 @@ def dump2file(data,filename,mode="w"):
             fp.write(data)
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1:
-        print query_crop(sys.argv[1])
+    #if len(sys.argv) > 1:
+    #    print query_crop(sys.argv[1])
     #query_crop("香蕉")
-    #for i in get_latest_news():
-    #    print str(i)
+    for i in get_latest_news():
+        print str(i)

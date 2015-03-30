@@ -59,7 +59,18 @@ def set_headers(base_url):
                             'Referer': 'http://www.weather.com.cn/weather1d/{0}.shtml',
                             'Accept-Encoding': 'gzip, deflate, sdch',
                             'Accept-Language': 'en-US,en;q=0.8'
+            },
+            'http://d1.weather.com.cn/dingzhi/':{
+                            'Host': 'd1.weather.com.cn',
+                            'Connection': 'keep-alive',
+                            #('Cache-Control','max-age=0'),
+                            'Accept': '*/*',
+                            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.2214.93 Safari/537.36',
+                            'Referer': 'http://www.weather.com.cn/weather1d/{0}.shtml',
+                            'Accept-Encoding': 'gzip, deflate, sdch',
+                            'Accept-Language': 'en-US,en;q=0.8'
             }
+
         }
     return headers[base_url]
 
@@ -121,7 +132,8 @@ def get_city_detail(city_code):
         #print e
 
     print "previous URL doesn't work"
-    base_url = "http://d1.weather.com.cn/sk_2d/"
+    #base_url = "http://d1.weather.com.cn/sk_2d/"
+    base_url = "http://d1.weather.com.cn/dingzhi/"
     url = base_url + city_code + ".html?"
     headers = set_headers(base_url)
     headers['Referer'] = headers['Referer'].format(city_code)
@@ -132,8 +144,8 @@ def get_city_detail(city_code):
     req = urllib2.Request(url,data=None,headers=headers)
     f = urllib2.urlopen(req)
     results = f.read()
-    with open("/tmp/log","w") as fp:
-        fp.write(results)
+    #with open("/tmp/log","w") as fp:
+        #fp.write(results)
     import StringIO
     import gzip
     data = StringIO.StringIO(results)
@@ -146,9 +158,10 @@ def parse_city_detail(html):
     pattern_all = re.compile(r'(\{.+?\})')
     weather_info = pattern_all.findall(html)[0]
     #print weather_info
-    import json
+    #import json
     #info = dict(weather_info[0])
-    info = json.loads(weather_info)
+    print weather_info
+    #info = json.loads(weather_info)
     return weather_info
 
 
@@ -159,5 +172,8 @@ if __name__ == "__main__":
     else:
         city_name = "扬州"
     city_detail = search_city_weather(city_name)
-    print city_detail
+    try:
+        print city_detail
+    except:
+        print city_detail.decode('utf-8')
     #print search_city_weather("hangzhou").__class__
