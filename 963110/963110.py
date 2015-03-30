@@ -4,6 +4,7 @@
 import urllib
 import urllib2
 import time
+import sys
 from bs4 import BeautifulSoup
 
 url_search = 'http://wiki.963110.com.cn/index.php?search-default'
@@ -21,8 +22,8 @@ def query_crop(name=""):
         payload = urllib.urlencode(data)
         req = urllib2.urlopen(url_search,payload)
         line = req.read()
-        dump2file(line,"/tmp/log")
-        extract_article(line)
+        dump2file(line,"/tmp/log/963110/query.log")
+        return extract_article(line)
     except BaseException,e:
         print e
     finally:
@@ -34,10 +35,13 @@ def extract_article(page):
 
     soup = BeautifulSoup(page)
     #print(soup.prettify().encode('utf-8'))
-    wordcut = soup.find("div", {"class":"l w-710 o-v"}).find(
-        "div",{"class":"content_1 wordcut"})
-    article = wordcut.getText()
-    print unicode(article)
+    try:
+        wordcut = soup.find("div", {"class":"l w-710 o-v"}).find(
+            "div",{"class":"content_1 wordcut"})
+        article = wordcut.getText()
+        return unicode(article).encode("utf-8")
+    except Exception,e:
+        return "Not found"
 
 def get_latest_news():
     req = urllib2.urlopen(url_news)
@@ -87,6 +91,8 @@ def dump2file(data,filename,mode="w"):
             fp.write(data)
 
 if __name__ == "__main__":
+    if len(sys.argv) > 1:
+        print query_crop(sys.argv[1])
     #query_crop("香蕉")
-    for i in get_latest_news():
-        print str(i)
+    #for i in get_latest_news():
+    #    print str(i)
