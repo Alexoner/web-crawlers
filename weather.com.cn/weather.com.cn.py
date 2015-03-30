@@ -4,7 +4,10 @@
 import urllib
 import urllib2
 import time
-from bs4 import BeautifulSoup
+try:
+    from bs4 import BeautifulSoup
+except ImportError,e:
+    from BeautifulSoup import BeautifulSoup
 import re
 import sys
 
@@ -88,7 +91,7 @@ def search_city_weather(cityname="yangzhou"):
         if city[6]!="":
             city_code = city[0]
             city_detail = get_city_detail(city_code)
-            return city_detail
+            return city_detail.decode('utf-8')
     return None
 
 def parse_city(results):
@@ -156,5 +159,5 @@ if __name__ == "__main__":
     else:
         city_name = "扬州"
     city_detail = search_city_weather(city_name)
-    print str(city_detail)
+    print city_detail
     #print search_city_weather("hangzhou").__class__
