@@ -93,6 +93,8 @@ def search_city_weather(cityname="yangzhou"):
     req = urllib2.Request(url,data=None,headers=dict(headers))
     f = urllib2.urlopen(req)
     results = f.read()
+    encoding = f.headers['content-type'].split(';')[1].split('=')[1]
+    results = results.decode(encoding.lower())
     cities = parse_city(results)
     # print
     for city in cities:
