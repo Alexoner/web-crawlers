@@ -1,0 +1,385 @@
+ID   Level 2 Category
+2	 Food          
+3	 Apparel & Accessories 
+5	 Electrical Equipment & Supplies 
+6	 Home Appliances 
+7	 Computer & Office 
+13	 Home Improvement 
+15	 Home & Garden 
+17	 Gifts & Crafts 
+18	 Sports & Entertainment 
+21	 Office & School Supplies 
+23	 Packaging & Shipping 
+26	 Toys & Hobbies 
+30	 Security & Protection 
+34	 Automobiles & Motorcycles 
+39	 Lights & Lighting 
+41	 Mechanical Parts & Fabrication Services 
+42	 Hardware      
+43	 Machinery     
+44	 Consumer Electronics 
+66	 Health & Beauty 
+80	 Rubber & Plastics 
+125	 Garden Supplies 
+238	 Grain Products 
+289	 Coffee        
+322	 Shoes         
+405	 Home Textile  
+502	 Electronic Components & Supplies 
+504	 Electronic Data Systems 
+509	 Phones & Telecommunications 
+515	 Electronics Stocks 
+516	 Other Electrical Equipment 
+526	 Contactors    
+527	 Professional Audio, Video & Lighting 
+528	 Batteries     
+530	 Lighting Accessories 
+540	 Fuses         
+614	 Hand Dryers   
+628	 Other Home Appliances 
+631	 Home Appliances Stocks 
+648	 Wet Towel Dispensers 
+702	 Laptops       
+712	 Software      
+717	 Other Computer Products 
+1333	 Other Home Improvement 
+1420	 Tools         
+1501	 Kids & Mothercare 
+1503	 Furniture     
+1504	 Indoor Lighting 
+1509	 Jewelry       
+1511	 Watches       
+1513	 Sanitary Paper 
+1524	 Luggage & Bags 
+1526	 Lighters & Smoking Accessories 
+1537	 Measurement & Analysis Instruments 
+2112	 Paper         
+2115	 Other Office & School Supplies 
+2202	 Books         
+2621	 Action & Toy Figures 
+2829	 Service Equipment 
+3015	 Roadway Safety 
+3305	 Oral Hygiene  
+3306	 Skin Care     
+3708	 Furniture Parts 
+3710	 Home Decor    
+3712	 Furniture Accessories 
+3803	 Coin Purses & Holders 
+3999	 Other Lights & Lighting Products 
+4001	 Active Components 
+4002	 Electronics Production Machinery 
+4003	 Electronic Accessories & Supplies 
+4004	 Optoelectronic Displays 
+4005	 Passive Components 
+4099	 Other Electronic Components 
+4103	 Fuse Components 
+4105	 Power Distribution Equipment 
+32212	 Children's Shoes 
+50906	 Walkie Talkie 
+50907	 Pagers        
+82207	 Woodworking Adhesives 
+141902	 Generators    
+141904	 Wires, Cables & Cable Assemblies 
+141905	 Electrical Plugs & Sockets 
+141906	 Switches      
+141907	 Transformers  
+141909	 Relays        
+141911	 Power Supplies 
+141913	 Power Accessories 
+141914	 Circuit Breakers 
+150301	 Commercial Furniture 
+150302	 Outdoor Furniture 
+150303	 Home Furniture 
+150304	 Office Furniture 
+150399	 Other Furniture 
+150401	 Outdoor Lighting 
+150402	 Light Bulbs   
+150403	 Holiday Lighting 
+150407	 Electronic Signs 
+150412	 EL Products   
+150512	 Electronic & Instrument Enclosures 
+152404	 Luggage & Travel Bags 
+152409	 Bag Parts & Accessories 
+211106	 Desk Accessories & Organizer 
+211111	 Painting Supplies 
+212002	 Presentation Boards 
+361120	 Pocket & Fob Watches 
+390501	 LED Lighting  
+390503	 Portable Lighting 
+660103	 Makeup        
+660302	 Shaving & Hair Removal 
+5090301	 Mobile Phones 
+14190403	 Wiring Accessories 
+14190406	 Connectors & Terminals 
+70803003	 Mini PCs      
+100000011	 Kitchen Appliances 
+100000012	 Laundry Appliances 
+100000013	 Cleaning Appliances 
+100000014	 Water Treatment Appliances 
+100000015	 Home Heaters  
+100000016	 Home Appliance Parts 
+100000026	 Refrigerators & Freezers 
+100000050	 Air Conditioning Appliances 
+100000054	 Water Heaters 
+100001118	 Baby Care     
+100001193	 Bamboo Furniture 
+100001196	 Glass Furniture 
+100001198	 Metal Furniture 
+100001199	 Plastic Furniture 
+100001200	 Rattan / Wicker Furniture 
+100001201	 Wood Furniture 
+100001203	 Children Furniture 
+100001204	 Antique Furniture 
+100001205	 Inflatable Furniture 
+100001206	 Folding Furniture 
+100001606	 Women's Shoes 
+100001615	 Men's Shoes   
+100001622	 Baby Toys     
+100001623	 Outdoor Fun & Sports 
+100001625	 Learning & Education 
+100001626	 Classic Toys  
+100001629	 Electronic Toys 
+100001663	 Diecasts & Toy Vehicles 
+100001681	 Shoe Polishing Equipment 
+100001684	 Shoe Dryer    
+100002824	 Wristwatches  
+100002964	 Baby Bedding  
+100002992	 Festive & Party Supplies 
+100003070	 Men's Clothing & Accessories 
+100003084	 Hoodies & Sweatshirts 
+100003109	 Women's Clothing & Accessories 
+100003141	 Hoodies & Sweatshirts 
+100003186	 Boys Clothing 
+100003199	 Girls Clothing 
+100003235	 Weddings & Events 
+100003240	 Stage & Dance Wear 
+100003269	 Wedding Dresses 
+100003745	 Notebooks & Writing Pads 
+100003766	 Office Electronics 
+100003804	 Filing Products 
+100003809	 Office Binding Supplies 
+100003819	 Cutting Supplies 
+100003836	 Adhesives & Tapes 
+100004814	 Bathroom Products 
+100004839	 Printing Materials 
+100004950	 Rain Gear     
+100005061	 Netbooks & UMPC 
+100005062	 Tablet PCs    
+100005063	 Laptop Accessories 
+100005094	 School & Educational Supplies 
+100005259	 Fitness & Body Building 
+100005322	 Golf          
+100005383	 Musical Instruments 
+100005433	 Camping & Hiking 
+100005444	 Fishing       
+100005460	 Horse Racing  
+100005471	 Hunting       
+100005479	 Shooting      
+100005505	 Sports Safety 
+100005575	 Water Sports  
+100005599	 Skiing & Snowboarding 
+100005624	 Wedding Accessories 
+100005663	 Other Sports & Entertainment Products 
+100005790	 Cocktail Dresses 
+100005791	 Prom Dresses  
+100005792	 Evening Dresses 
+100006182	 Tea           
+100006206	 Pet Products  
+100006479	 Kitchen & Bath Fixtures 
+100006749	 Rings         
+100008232	 Customized Products 
+100008233	 Apparel & Fashion Accessories 
+100008247	 Promotional Drinkware 
+100008248	 Promotional Key Chains 
+100008261	 Other Promotional Products 
+100008262	 Electronic Products 
+100008291	 Promotional Pen 
+100008297	 Bags & Hats   
+100008302	 Novelty  Products 
+100008305	 Promotional Household Products 
+100008435	 Promotional Paper Products 
+100008483	 Promotional Food & Beverage 
+100008488	 Promotional Personal Care 
+100008564	 Promotional Stationary 
+200000084	 Watch Accessories 
+200000097	 Bracelets & Bangles 
+200000109	 Necklaces & Pendants 
+200000139	 Earrings      
+200000161	 Wedding & Engagement Jewelry 
+200000191	 Replacement Parts 
+200000293	 Lights & Indicators 
+200000322	 Diagnostic Tools 
+200000361	 Transporting & Storage 
+200000369	 Car Electronics 
+200000406	 RV Parts & Accessories 
+200000407	 ATV Parts & Accessories 
+200000408	 Motorcycle Accessories & Parts 
+200000528	 Baby Boys Clothing 
+200000567	 Baby Girls Clothing 
+200000599	 Accessories   
+200000662	 Jackets & Coats 
+200000668	 Shirts        
+200000673	 Sleep & Lounge 
+200000692	 Suits & Blazers 
+200000701	 Sweaters      
+200000706	 Swimwear      
+200000707	 Tops & Tees   
+200000708	 Underwear     
+200000724	 Accessories   
+200000773	 Intimates     
+200000774	 Maternity     
+200000775	 Jackets & Coats 
+200000777	 Sleep & Lounge 
+200000781	 Socks & Hosiery 
+200000782	 Suits & Sets  
+200000783	 Sweaters      
+200000784	 Swimwear      
+200000785	 Tops & Tees   
+200000875	 Novelty & Special Use 
+200001092	 Jumpsuits & Rompers 
+200001095	 Sports Clothing 
+200001096	 World Apparel 
+200001270	 Costumes & Accessories 
+200001271	 Exotic Apparel 
+200001355	 Work Wear & Uniforms 
+200001520	 Wedding Party Dress 
+200001553	 Celebrity-Inspired Dresses 
+200001554	 Homecoming Dresses 
+200001556	 Quinceanera Dresses 
+200001648	 Blouses & Shirts 
+200002086	 Kitchen,Dining & Bar 
+200002101	 Baby Shoes    
+200002124	 Shoe Accessories 
+200002255	 Other Phones & Telecommunications Products 
+200002262	 Walkie Talkie Accessories 
+200002283	 Novelty Lighting 
+200002315	 Special Category 
+200002316	 Checkout Link 
+200002317	 Additional Pay on Your Order 
+200002318	 Desktops & Servers 
+200002319	 Computer Components 
+200002320	 Networking    
+200002321	 Storage Devices 
+200002342	 Computer Peripherals 
+200002361	 Tablet Accessories 
+200002394	 Accessories & Parts 
+200002395	 Camera & Photo 
+200002396	 Video Games   
+200002397	 Home Audio & Video 
+200002398	 Portable Audio & Video 
+200002418	 Dried Fruit   
+200002419	 Nut & Kernel  
+200002444	 Bath & Shower 
+200002454	 Fragrances & Deodorants 
+200002458	 Hair Care & Styling 
+200002489	 Hair Extensions & Wigs 
+200002496	 Health Care   
+200002547	 Nails & Tools 
+200002569	 Tools & Accessories 
+200002633	 Models & Building Toy 
+200002636	 Novelty & Gag Toys 
+200002639	 Remote Control Toys 
+200002962	 Jewelry Findings & Components 
+200002973	 Jewelry Packaging & Display 
+200002980	 Jewelry Tools & Equipments 
+200003009	 Business Lights 
+200003010	 Other Home Products 
+200003013	 GPS & Accessories 
+200003045	 Sex Products  
+200003113	 Giveaways     
+200003114	 New Arrivals  
+200003115	 Down payment/ Purchasing Agent 
+200003136	 Housekeeping & Organization 
+200003196	 Pens, Pencils & Writing Supplies 
+200003197	 Labels, Indexes & Stamps 
+200003198	 Calendars, Planners & Cards 
+200003210	 Professional Lighting 
+200003225	 Dolls & Stuffed Toys 
+200003226	 Puzzles & Magic Cubes 
+200003230	 Building Supplies 
+200003232	 Electrical    
+200003238	 Mail & Shipping Supplies 
+200003292	 Basis Material 
+200003410	 Traditional Chinese Clothing 
+200003482	 Dresses       
+200003491	 Socks         
+200003551	 Tattoo & Body Art 
+200003570	 Cycling       
+200003575	 LED Lamps     
+200003590	 Industry & Business 
+200003592	 Safety        
+200003594	 Activity & Gear 
+200003595	 Feeding       
+200003758	 Special Store 
+200003817	 Special Store 
+200003842	 Special Store 
+200003857	 Holiday  Lighting 
+200003859	 Special Store 
+200003929	 Sports Watches 
+200003989	 Special Store 
+200004004	 Special Store 
+200004149	 Fashion & Casual Watches 
+200004153	 Antique Watches 
+200004286	 Loose Gemstones 
+200004312	 Special Store 
+200004362	 Gold Bar      
+200004364	 Silver Bar    
+200004379	 Special Store 
+200004414	 Other Consumer Electronics 
+200004573	 Others        
+200004619	 Interior Accessories 
+200004620	 Exterior Accessories 
+200004621	 Tools & Equipment 
+200004635	 Car Care      
+200004685	 Sportswears   
+200004720	 Office Electronics 
+200005059	 Racquet Sports 
+200005101	 Entertainment 
+200005143	 Roller,Skate board &Scooters 
+200005156	 Running       
+200005194	 Travel and Vacations 
+200005195	 Public Transport Discount Cards 
+200005196	 Rentals       
+200005203	 Travel Discount Coupons 
+200005212	 Travel Products 
+200005222	 Special Store 
+200005271	 Electronics   
+200005276	 Sneakers      
+200005280	 Electronic Cigarettes 
+200010057	 Men's Bags    
+200010063	 Women's Bags  
+200010072	 Hair          
+200010073	 Hair Extension 
+200010089	 Wigs          
+200010091	 Hair Pieces   
+200010095	 Hair Weaves   
+200010097	 Closure       
+200010104	 Hair Care & Styling 
+200010110	 Tools & Accessories 
+200010111	 Browse by Brands 
+200010196	 Smart Electronics 
+200040001	 House Ornamentation 
+200048005	 Backpack      
+200052001	 Men           
+200060006	 Market        
+200066014	 Kids & Baby's Bags 
+200068019	 Functional Bags 
+200074001	 Beauty Essentials 
+200084017	 Mobile Phone Accessories 
+200086021	 Mobile Phone Parts 
+200094001	 Team Sports   
+200102014	 Kids' Sneakers 
+200114002	 Medlar        
+200118008	 Bottoms       
+200118010	 Bottoms       
+200120001	 Mobile Phone Recharging 
+200126001	 Communication Equipments 
+200128004	 Telephones    
+200132001	 Jewelry Sets & More 
+200138014	 Shoes         
+200140004	 Luggage & Bags 
+200154001	 Arts,Crafts & Sewing 
+200154003	 Beads & Jewelry Making 
+200166001	 Family Matching Outfits 
+200182006	 PC Tablets    
+200188001	 Fine Jewelry  
