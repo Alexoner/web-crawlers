@@ -5,7 +5,9 @@ import requests
 import random
 import re
 import json
+import pickle
 import urllib
+import time
 from requests_futures.sessions import FuturesSession
 from requests_futures.sessions import Callback
 from enum import Enum
@@ -112,7 +114,7 @@ class WishCallback(Callback):
         Callback.__init__(self)
 
     def execute(self):
-        print "Data passed to me is: ",self.data,self.wish
+        print "Data passed to me is: ",self.data
         #print self.response.content
         self.wish.pipeline(self.data,self.response)
         pass
@@ -197,15 +199,21 @@ class Crawler:
 
     def add_tasks(self):
         #split_pattern = re.compile("\s*&\s*")
-        split_pattern = re.compile("\s|&")
+        #split_pattern = re.compile("\s|&")
         for key,value in self.category_map.iteritems():
-            names = split_pattern.split(value)
-            for name in names:
-                if not name.isspace():
-                    task = Task(category_id=key,category_name=name)
-                    self.add_task(task)
-                else:
-                    print name+" is space"
+            #names = split_pattern.split(value)
+            #for name in names:
+                #if not name.isspace():
+                    #task = Task(category_id=key,category_name=name)
+                    #self.add_task(task)
+                #else:
+                    #print name+" is space"
+
+            if not value.isspace():
+                task = Task(category_id=key,category_name=value)
+                self.add_task(task)
+            else:
+                print value+" is space"
 
     def delete_task(self,task_name,task_id):
         try:
@@ -228,6 +236,12 @@ class Crawler:
         future = self.session.post(url,headers=headers,data=param,proxies=proxies,cookie=cookie,background_callback=callback)
         return future
 
+    def get_nitems_of_category(self,category_name):
+        """
+            get total number of items of the very category
+            Binary search
+        """
+        pass
 
     def fetch_category(self,category_name):
         """
@@ -243,20 +257,19 @@ class Crawler:
         cb = WishCallback(data=category_name,wish=self)
 
         proxies = self.get_proxy()
-        self.get(url=task.api_search_url,headers=headers,param=param,proxies=proxies,cookie=None,callback=cb)
+        return self.get(url=task.api_search_url,headers=headers,param=param,proxies=proxies,cookie=None,callback=cb)
 
 
     def write2file(self,category_name,data):
-        print 'pipeline: '+category_name
         with open("output/"+category_name+".txt","a+") as output:
             output.write(data)
+            output.write("\n")
             #self.category_file.write(data)
 
     def pipeline(self,category_name,response):
         json_decoder = json.JSONDecoder()
         result = json_decoder.decode(response.content)
         items = result['data']['results']
-        self.write2file(category_name,json.dumps(items))
         next_offset = result['data']['next_offset']
         num_found = result['data']['num_found']
         num_received = len(items)
@@ -265,10 +278,18 @@ class Crawler:
         self.task_map[category_name].num_found = num_found
 
         if num_received == 0:
-            del self.category_map[category_name]
+            del self.task_map[category_name]
+        else:
+            print 'pipeline: category='+category_name +' number received = ',num_received
+            self.write2file(category_name,json.dumps(items))
+            print "category map: ",len(self.category_map)
+            with open("output/state.txt","w+") as state_file:
+                pickle.dump(self.task_map,state_file)
+                #state_file.write(self.category_map)
+                #state_file.flush()
 
-        with open("output/state.txt","w") as state_file:
-            state_file.write(self.category_map)
+            print 'continuing fetching category = ',category_name
+            self.fetch_category(category_name)
 
         #for item in items:
             #pass
@@ -301,7 +322,9 @@ class Crawler:
         pass
 
     def get_proxy(self):
-        return {"http":self.proxy_addresses[self.rand.randint(0,self.proxy_number-1)]}
+        proxy = self.proxy_addresses[self.rand.randint(0,self.proxy_number-1)]
+        return {"http":proxy,
+                "https":proxy}
 
     def crawl(self):
         self.read_categories_file()
@@ -310,21 +333,29 @@ class Crawler:
 
 def test():
     wish_crawler = Crawler()
+    wish_crawler.read_categories_file()
+    wish_crawler.add_tasks()
+    print wish_crawler.category_map
+    #url = "https://www.wish.com/api/search?query=book&start=21&transform=true"
+    #wish_crawler.pipeline("luggage & bags",requests.get(url).content)
+    wish_crawler.fetch_category('luggage & bags')
+    #print requests.get(url).content
+
+
+
+if __name__ == "__main__":
+    wish_crawler = Crawler()
     print "number of categories: ",len(wish_crawler.read_categories_file())
     wish_crawler.add_tasks()
-    #print wish_crawler.task_map
-    #url = "https://www.wish.com/api/search?query=book&start=21&transform=true"
-    #wish_crawler.pipeline("book",requests.get(url).content)
     #wish_crawler.fetch_category('bags')
-    #print requests.get(url).content
+    #while len(wish_crawler.category_map) != 0:
+    for category_name in wish_crawler.task_map:
+        wish_crawler.fetch_category(category_name)
+
     while len(wish_crawler.category_map) != 0:
-        for category_name in wish_crawler.task_map:
-            wish_crawler.fetch_category(category_name)
+        time.sleep(10)
+        print '**********************************'
         pass
 
     print "Exiting!"
-
-if __name__ == "__main__":
-   test()
-
 
