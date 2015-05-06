@@ -91,6 +91,31 @@ class Item:
             self.tags
         ]
 
+    def get_from_json(self,item_json=""):
+        #p = Item()
+        self.contest_page_picture = item["contest_page_picture", u"N/A"]
+        self.no = params["offset"] + j
+        self.product_id = item["id"]
+
+        var_product = item["commerce_product_info"]["variations"][0]
+        self.localized_price_localized_value = var_product.get("localized_price", {}).get("localized_value", -1)
+        self.localized_price_currency_code = var_product.get("localized_price", {}).get("currency_code", u"N/A")
+        self.localized_retail_price_localized_value = var_product.get("localized_retail_price", {}).get("localized_value", -1)
+        self.localized_retail_price_currency_code = var_product.get("localized_retail_price", {}).get("currency_code", u"N/A")
+        self.localized_shipping_localized_value = var_product.get("localized_shipping", {}).get("localized_value", -1)
+        self.localized_shipping_currency_code = var_product.get("localized_shipping", {}).get("currency_code", u"N/A")
+        self.product_rating = item.get("product_rating", {}).get("rating", -1)
+        self.rating_count = item.get("product_rating", {}).get("rating_count", -1)
+        self.name = item.get("name", u"N/A")
+        self.ships_from = var_product.get("ships_from", u"N/A")
+        self.min_shipping_time = var_product.get("min_shipping_time", -1)
+        self.max_shipping_time = var_product.get("max_shipping_time", -1)
+        self.shipping_time_string = var_product.get("shipping_time_string", u"N/A")
+        self.gender = item.get("gender", u"N/A")
+        self.tags = build_tags_str(item.get("tags", []))
+        products_writer.writerow(self.get_list())
+
+
 class Task:
     def __init__(self,url="https://www.wish.com/api/search",
                  category_id=None,category_name="",start_offset=0,next_offset=0,
@@ -171,11 +196,19 @@ class Crawler:
 
         self.session = FuturesSession()
 
-    def recover_from_file(self):
+    def recover_from_file(self,path='output/2/state.txt'):
         """
             recover from the file to resume the tasks
         """
-        pass
+        try:
+            rec_file = open(path,'rb')
+            task_map = pickle.load(rec_file)
+            self.task_map = task_map
+        except IOError,e:
+            print e
+        #with open(path,'rb') as rec_file:
+            #task_map = pickle.load(rec_file)
+        #pass
 
     def read_categories_file(self,category_filename="categories_2.txt"):
         """
@@ -189,31 +222,43 @@ class Crawler:
             self.category_map = dict()
             pattern = re.compile("(\d+)\s(.+)")
             for pair in category_pairs:
-                key,value = pattern.findall(pair)[0]
-                self.category_map[key.strip().lower()]=value.strip().lower()
+                try:
+                    key,value = pattern.findall(pair)[0]
+                    self.category_map[key.strip().lower()]=value.strip().lower()
+                except:
+                    pass
 
         return self.category_map
 
     def add_task(self,task):
         self.task_map[task.category_name] = task
 
-    def add_tasks(self):
+    def add_tasks(self,tasks=None):
         #split_pattern = re.compile("\s*&\s*")
         #split_pattern = re.compile("\s|&")
-        for key,value in self.category_map.iteritems():
-            #names = split_pattern.split(value)
-            #for name in names:
-                #if not name.isspace():
-                    #task = Task(category_id=key,category_name=name)
-                    #self.add_task(task)
-                #else:
-                    #print name+" is space"
+        if tasks is None:
+            for key,value in self.category_map.iteritems():
+                #names = split_pattern.split(value)
+                #for name in names:
+                    #if not name.isspace():
+                        #task = Task(category_id=key,category_name=name)
+                        #self.add_task(task)
+                    #else:
+                        #print name+" is space"
 
-            if not value.isspace():
-                task = Task(category_id=key,category_name=value)
-                self.add_task(task)
-            else:
-                print value+" is space"
+                if not value.isspace():
+                    task = Task(category_id=key,category_name=value)
+                    self.add_task(task)
+                else:
+                    print value+" is space"
+        else:
+            for key,value in tasks:
+                if not value.isspace():
+                    task = Task(category_id=key,category_name=value)
+                    self.add_task(task)
+                else:
+                    print value+" is space"
+
 
     def delete_task(self,task_name,task_id):
         try:
@@ -259,9 +304,26 @@ class Crawler:
         proxies = self.get_proxy()
         return self.get(url=task.api_search_url,headers=headers,param=param,proxies=proxies,cookie=None,callback=cb)
 
+    def fetch_category_sync(self,category_name):
+        task = self.task_map[category_name]
+        param = []
+        param.append(('query',category_name))
+        param.append(('start',str(task.start_offset)))
+        param.append(('transform','true'))
+        cb = WishCallback(data=category_name,wish=self)
+
+        headers = HEADERS['api_search']
+        proxies = self.get_proxy()
+        while self.task_map.has_key(category_name):
+            pass
+
+        print 'finished a category!'
+        return self.get(url=task.api_search_url,headers=headers,param=param,proxies=proxies,cookie=None,callback=cb)
+
+
 
     def write2file(self,category_name,data):
-        with open("output/"+category_name+".txt","a+") as output:
+        with open("output/2/"+category_name+".txt","a+") as output:
             output.write(data)
             output.write("\n")
             #self.category_file.write(data)
@@ -283,7 +345,8 @@ class Crawler:
             print 'pipeline: category='+category_name +' number received = ',num_received
             self.write2file(category_name,json.dumps(items))
             print "category map: ",len(self.category_map)
-            with open("output/state.txt","w+") as state_file:
+            with open("output/2/state.txt","w+") as state_file:
+                # with statement deals with Exceptions,may block your code !!!
                 pickle.dump(self.task_map,state_file)
                 #state_file.write(self.category_map)
                 #state_file.flush()
@@ -343,19 +406,43 @@ def test():
 
 
 
-if __name__ == "__main__":
-    wish_crawler = Crawler()
-    print "number of categories: ",len(wish_crawler.read_categories_file())
-    wish_crawler.add_tasks()
-    #wish_crawler.fetch_category('bags')
-    #while len(wish_crawler.category_map) != 0:
-    for category_name in wish_crawler.task_map:
-        wish_crawler.fetch_category(category_name)
 
-    while len(wish_crawler.category_map) != 0:
-        time.sleep(10)
-        print '**********************************'
-        pass
+if __name__ == "__main__":
+    """
+    Parallelly crawl https:www.wish.com/
+    Parallelism:
+        1. Simultaneously category fetching
+        2. Simultaneously request different partition of a category.
+            Set the start offset to control how to partition.We need first
+            to get the total number of items of a category
+    """
+    wish_crawler = Crawler()
+    total_categories = len(wish_crawler.read_categories_file('tags/tags_2.json'))
+    print "number of categories: ",total_categories
+    # max concurrent connection number
+    max_con = 1000
+    # number of pass to fetch the categories in batch
+    pass_number = total_categories/max_con
+    tasks = wish_crawler.category_map.items()
+    for i in xrange(pass_number):
+        try:
+            # sequentially add a batch of categories to task map
+            wish_crawler.add_tasks(tasks[i*max_con:(i+1)*max_con])
+        except:
+            print "No more tasks to add!"
+        #wish_crawler.fetch_category('bags')
+        #while len(wish_crawler.category_map) != 0:
+
+        # simultaneously fetch the categories
+        for category_name in wish_crawler.task_map:
+            wish_crawler.fetch_category(category_name)
+
+        while len(wish_crawler.task_map) != 0:
+            time.sleep(10)
+            print '************************************************'
+            pass
+
+        print "Entering next pass now!"
 
     print "Exiting!"
 
