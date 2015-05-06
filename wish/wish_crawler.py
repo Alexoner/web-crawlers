@@ -9,6 +9,7 @@ import pickle
 import urllib
 import time
 import os
+import sys
 from requests_futures.sessions import FuturesSession
 from requests_futures.sessions import Callback
 from enum import Enum
@@ -230,7 +231,7 @@ class Crawler:
             for pair in category_pairs:
                 try:
                     key,value = pattern.findall(pair)[0]
-                    self.category_map[key.strip().lower()]=value.strip().lower()
+                    self.category_map[value.strip().lower()]=value.strip().lower()
                 except:
                     pass
 
@@ -439,12 +440,14 @@ if __name__ == "__main__":
             to get the total number of items of a category
     """
     wish_crawler = Crawler(output_dir='output/4',error_dir='error')
-    total_categories = len(wish_crawler.read_categories_file('tags/tags_2.json.bak'))
-    print "number of categories: ",total_categories
+    total_categories = wish_crawler.read_categories_file('tags/tags_2.json.bak')
+    #print total_categories
+    print "number of categories: ",len(total_categories)
+    sys.stdin.read(1)
     # max concurrent connection number
-    max_con = 10000
+    max_con = 1000
     # number of pass to fetch the categories in batch
-    pass_number = total_categories/max_con + 1
+    pass_number = len(total_categories)/max_con + 1
     tasks = wish_crawler.category_map.items()
     for i in xrange(pass_number):
         try:
