@@ -336,8 +336,10 @@ class Crawler:
             #self.category_file.write(data)
 
     def when_zero_received(self,category_name):
+        # delete it from task map
+        print "\033[4;32mFinished category: ",category_name,"\033[0m"
+        del self.task_map[category_name]
         if os.path.isfile(self.output_dir+"/"+category_name+".txt"):
-            del self.task_map[category_name]
             print "{0} category tasks remaining! ".format(len(self.task_map))
         else:
             # file not created,then tag not fetched at all!
@@ -442,10 +444,10 @@ if __name__ == "__main__":
     wish_crawler = Crawler(output_dir='output/4',error_dir='error')
     total_categories = wish_crawler.read_categories_file('tags/tags_2.json.bak')
     #print total_categories
-    print "number of categories: ",len(total_categories)
+    print "\033[4;32mnumber of categories: ",len(total_categories),"\033[0m"
     sys.stdin.read(1)
     # max concurrent connection number
-    max_con = 1000
+    max_con = 3000
     # number of pass to fetch the categories in batch
     pass_number = len(total_categories)/max_con + 1
     tasks = wish_crawler.category_map.items()
@@ -464,10 +466,10 @@ if __name__ == "__main__":
 
         while len(wish_crawler.task_map) != 0:
             time.sleep(10)
-            print '************************************************'
+            print '\033[0;31m************************************************\033[0m'
             pass
 
-        print "Entering next pass now!"
+        print "\033[0;30mEntering next pass now!\033[0m"
 
-    print "Exiting!"
+    print "\033[0;31mExiting!"
 
