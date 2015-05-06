@@ -8,6 +8,7 @@ import json
 import pickle
 import urllib
 import time
+import os
 from requests_futures.sessions import FuturesSession
 from requests_futures.sessions import Callback
 from enum import Enum
@@ -150,7 +151,9 @@ class Crawler:
                  email="liushuaikobe1993@163.com",
                  password="19930418lskobe",
                  save_filename="products.json",
-                 category_filename="categories_2.txt"):
+                 category_filename="categories_2.txt",
+                 output_dir='output',
+                 error_dir='error'):
         self.username = username
         self.email = email
         self.password = password
@@ -196,7 +199,10 @@ class Crawler:
 
         self.session = FuturesSession()
 
-    def recover_from_file(self,path='output/2/state.txt'):
+        self.output_dir = output_dir
+        self.error_dir = error_dir
+
+    def recover_from_file(self,path):
         """
             recover from the file to resume the tasks
         """
@@ -323,10 +329,27 @@ class Crawler:
 
 
     def write2file(self,category_name,data):
-        with open("output/2/"+category_name+".txt","a+") as output:
+        with open(self.output_dir+"/"+category_name+".txt","a+") as output:
             output.write(data)
             output.write("\n")
             #self.category_file.write(data)
+
+    def when_zero_received(self,category_name):
+        if os.path.isfile(self.output_dir+"/"+category_name+".txt"):
+            del self.task_map[category_name]
+            print "{0} category tasks remaining! ".format(len(self.task_map))
+        else:
+            # file not created,then tag not fetched at all!
+            try:
+                error_file = open(self.error_dir+'/error.txt','a+')
+                error_file.seek(0,2)
+                line_number = error_file.tell()
+                error_file.write(str(line_number)+'\t'+category_name+'\n')
+            except Exception,e:
+                print e
+            finally:
+                if error_file is not None:
+                    error_file.close()
 
     def pipeline(self,category_name,response):
         json_decoder = json.JSONDecoder()
@@ -340,12 +363,11 @@ class Crawler:
         self.task_map[category_name].num_found = num_found
 
         if num_received == 0:
-            del self.task_map[category_name]
+            self.when_zero_received(category_name)
         else:
             print 'pipeline: category='+category_name +' number received = ',num_received
             self.write2file(category_name,json.dumps(items))
-            print "category map: ",len(self.category_map)
-            with open("output/2/state.txt","w+") as state_file:
+            with open("output/state.txt","w+") as state_file:
                 # with statement deals with Exceptions,may block your code !!!
                 pickle.dump(self.task_map,state_file)
                 #state_file.write(self.category_map)
@@ -416,13 +438,13 @@ if __name__ == "__main__":
             Set the start offset to control how to partition.We need first
             to get the total number of items of a category
     """
-    wish_crawler = Crawler()
-    total_categories = len(wish_crawler.read_categories_file('tags/tags_2.json'))
+    wish_crawler = Crawler(output_dir='output/4',error_dir='error')
+    total_categories = len(wish_crawler.read_categories_file('tags/tags_2.json.bak'))
     print "number of categories: ",total_categories
     # max concurrent connection number
-    max_con = 1000
+    max_con = 10000
     # number of pass to fetch the categories in batch
-    pass_number = total_categories/max_con
+    pass_number = total_categories/max_con + 1
     tasks = wish_crawler.category_map.items()
     for i in xrange(pass_number):
         try:
