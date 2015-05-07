@@ -166,8 +166,8 @@ class Crawler:
         self.category_filename=category_filename
         self.save_file=None
         self.category_file=None
-        self.category_map=None
-        self.task_list = None
+        self.category_map={}
+        self.task_list = []
         self.rand = random.Random()
         self.timeout_seconds = timeout_seconds
         self.proxy_addresses = [
@@ -236,11 +236,19 @@ class Crawler:
                 try:
                     key,value = pattern.findall(pair)[0]
                     self.category_map[value.strip().lower()]=value.strip().lower()
-                except:
-                    pass
+                except Exception,e:
+                    print e
+        fetched_categories = [  ]
+        for key,value in self.category_map.items():
+            if not self.is_fetched(key):
+                self.task_list.append((key,value))
+            else:
+                fetched_categories.append(value)
+                print "\033[0;35m {} is fetched!".format(key)
 
-        self.task_list = self.category_map.items()
-        return self.category_map
+        print "\033[0;35m {} categories are fetched in total!".format(len(fetched_categories))
+        #self.task_list = self.category_map.items()
+        return self.task_list
 
     def add_new_tasks(self):
         """
@@ -333,10 +341,6 @@ class Crawler:
             fetch a category's products if its output file is not present,
             otherwise,the category has been fetched,then remove it from task map.
         """
-        if self.is_fetched(category_name):
-            print "\033[0;35m {} is fetched!".format(category_name)
-            return None
-
         task = self.task_map[category_name]
         param = []
         param.append(('query',category_name))
@@ -547,7 +551,7 @@ def run(wish_crawler):
     wish_crawler.add_tasks(tasks)
     # simultaneously fetch the categories
     for category_name in wish_crawler.task_map:
-        result = wish_crawler.fetch_category(category_name)
+        wish_crawler.fetch_category(category_name)
 
     while len(wish_crawler.task_map) != 0:
         time.sleep(10)
