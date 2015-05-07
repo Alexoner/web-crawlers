@@ -151,8 +151,9 @@ class Crawler:
                  username="",
                  email="liushuaikobe1993@163.com",
                  password="19930418lskobe",
-                 save_filename="products.json",
                  category_filename="categories_2.txt",
+                 save_filename="products.json",
+                 timeout_seconds=300,
                  output_dir='output',
                  error_dir='error'):
         self.username = username
@@ -165,7 +166,9 @@ class Crawler:
         self.save_file=None
         self.category_file=None
         self.category_map=None
+        self.task_list = None
         self.rand = random.Random()
+        self.timeout_seconds = timeout_seconds
         self.proxy_addresses = [
         "http://50.22.186.84:3128",
         "http://50.22.186.84:3129",
@@ -235,12 +238,19 @@ class Crawler:
                 except:
                     pass
 
+        self.task_list = self.category_map.items()
         return self.category_map
 
     def add_task(self,task):
+        """
+        add a Task object to task_map
+        """
         self.task_map[task.category_name] = task
 
     def add_tasks(self,tasks=None):
+        """
+        add tasks from category (id,name) collection
+        """
         #split_pattern = re.compile("\s*&\s*")
         #split_pattern = re.compile("\s|&")
         if tasks is None:
@@ -335,12 +345,43 @@ class Crawler:
             output.write("\n")
             #self.category_file.write(data)
 
+    def when_zero_received_ext(self,category_name):
+        # delete it from task map
+        print "\033[4;32mFinished category: ",category_name,"\033[0m"
+        del self.task_map[category_name]
+        print "\033[4;31m{0} category tasks remaining! \033[0m".format(len(self.task_map))
+        if len(self.task_list) > 0:
+            try:
+                new_tasks = [self.task_list.pop(0)]
+                self.add_tasks(new_tasks)
+                self.fetch_category(new_tasks[0][1])
+                print "\033[4;31m new category {0}".format(new_tasks[0][1])
+            except:
+                pass
+        print "\033[4;31m{0} category tasks remaining! \033[0m".format(len(self.task_map))
+        if os.path.isfile(self.output_dir+"/"+category_name+".txt"):
+            # finished crawling
+            pass
+        else:
+            # file not created,then tag not fetched at all!
+            try:
+                error_file = open(self.error_dir+'/error.txt','a+')
+                error_file.seek(0,2)
+                line_number = error_file.tell()
+                error_file.write(str(line_number)+'\t'+category_name+'\n')
+            except Exception,e:
+                print e
+            finally:
+                if error_file is not None:
+                    error_file.close()
+
     def when_zero_received(self,category_name):
         # delete it from task map
         print "\033[4;32mFinished category: ",category_name,"\033[0m"
         del self.task_map[category_name]
+        print "{0} category tasks remaining! ".format(len(self.task_map))
         if os.path.isfile(self.output_dir+"/"+category_name+".txt"):
-            print "{0} category tasks remaining! ".format(len(self.task_map))
+            pass
         else:
             # file not created,then tag not fetched at all!
             try:
@@ -366,7 +407,7 @@ class Crawler:
         self.task_map[category_name].num_found = num_found
 
         if num_received == 0:
-            self.when_zero_received(category_name)
+            self.when_zero_received_ext(category_name)
         else:
             print 'pipeline: category='+category_name +' number received = ',num_received
             self.write2file(category_name,json.dumps(items))
@@ -429,10 +470,7 @@ def test():
     wish_crawler.fetch_category('luggage & bags')
     #print requests.get(url).content
 
-
-
-
-if __name__ == "__main__":
+def run(wish_crawler):
     """
     Parallelly crawl https:www.wish.com/
     Parallelism:
@@ -441,35 +479,35 @@ if __name__ == "__main__":
             Set the start offset to control how to partition.We need first
             to get the total number of items of a category
     """
-    wish_crawler = Crawler(output_dir='output/4',error_dir='error')
     total_categories = wish_crawler.read_categories_file('tags/tags_2.json.bak')
     #print total_categories
     print "\033[4;32mnumber of categories: ",len(total_categories),"\033[0m"
     sys.stdin.read(1)
     # max concurrent connection number
-    max_con = 3000
-    # number of pass to fetch the categories in batch
-    pass_number = len(total_categories)/max_con + 1
-    tasks = wish_crawler.category_map.items()
-    for i in xrange(pass_number):
-        try:
-            # sequentially add a batch of categories to task map
-            wish_crawler.add_tasks(tasks[i*max_con:(i+1)*max_con])
-        except:
-            print "No more tasks to add!"
-        #wish_crawler.fetch_category('bags')
-        #while len(wish_crawler.category_map) != 0:
+    max_con = 1000
+    # add a batch of categories to task map
+    i = 0
+    tasks = wish_crawler.task_list[i*max_con:(i+1)*max_con]
+    wish_crawler.task_list = wish_crawler.task_list[(i+1)*max_con:]
+    wish_crawler.add_tasks(tasks)
+    # simultaneously fetch the categories
+    for category_name in wish_crawler.task_map:
+        wish_crawler.fetch_category(category_name)
 
-        # simultaneously fetch the categories
-        for category_name in wish_crawler.task_map:
-            wish_crawler.fetch_category(category_name)
+    while len(wish_crawler.task_map) != 0:
+        time.sleep(10)
+        print '\033[0;31m************************************************\033[0m'
+        print "{0} category tasks remaining! ".format(len(wish_crawler.task_map))
+        pass
 
-        while len(wish_crawler.task_map) != 0:
-            time.sleep(10)
-            print '\033[0;31m************************************************\033[0m'
-            pass
-
-        print "\033[0;30mEntering next pass now!\033[0m"
+    print "\033[1;33mEntering next pass now!\033[0m"
 
     print "\033[0;31mExiting!"
 
+
+
+
+
+if __name__ == "__main__":
+    wish_crawler = Crawler(output_dir='output/4',error_dir='error')
+    run(wish_crawler)
