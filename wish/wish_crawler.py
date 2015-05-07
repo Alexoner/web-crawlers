@@ -130,6 +130,7 @@ class Task:
         self.start_offset = start_offset
         self.next_offset = next_offset
 
+        self.last_modified = time.time()
         self.state ="started"
         pass
 
@@ -241,7 +242,23 @@ class Crawler:
         self.task_list = self.category_map.items()
         return self.category_map
 
-    def add_task(self,task):
+    def add_new_tasks(self):
+        """
+        add a new task to running map/queue from list of category tuples
+        and return the new category name
+        """
+        try:
+            new_tasks = [self.task_list.pop(0)]
+            self.add_tasks(new_tasks)
+            #self.fetch_category(new_tasks[0][1])
+            print "\033[4;31m new category {0}".format(new_tasks[0][1])
+            return new_tasks[0][1]
+        except Exception,e:
+            print e
+            return None
+
+
+    def add_task_map(self,task):
         """
         add a Task object to task_map
         """
@@ -259,20 +276,20 @@ class Crawler:
                 #for name in names:
                     #if not name.isspace():
                         #task = Task(category_id=key,category_name=name)
-                        #self.add_task(task)
+                        #self.add_task_map(task)
                     #else:
                         #print name+" is space"
 
                 if not value.isspace():
                     task = Task(category_id=key,category_name=value)
-                    self.add_task(task)
+                    self.add_task_map(task)
                 else:
                     print value+" is space"
         else:
             for key,value in tasks:
                 if not value.isspace():
                     task = Task(category_id=key,category_name=value)
-                    self.add_task(task)
+                    self.add_task_map(task)
                 else:
                     print value+" is space"
 
@@ -285,6 +302,9 @@ class Crawler:
             pass
 
     def get(self,url,headers=None,param=None,proxies=None,cookie=None,callback=None):
+        """
+         send an asynchronous GET request with callback object
+        """
         for key in headers:
             self.session.headers[key] = headers[key]
         url_true = url+"?"+urllib.urlencode(param)
@@ -305,10 +325,18 @@ class Crawler:
         """
         pass
 
+    def is_fetched(self,category_name):
+        return os.path.isfile(self.get_category_output_filename(category_name))
+
     def fetch_category(self,category_name):
         """
-            fetch a category's products
+            fetch a category's products if its output file is not present,
+            otherwise,the category has been fetched,then remove it from task map.
         """
+        if self.is_fetched(category_name):
+            print "\033[0;35m {} is fetched!".format(category_name)
+            return None
+
         task = self.task_map[category_name]
         param = []
         param.append(('query',category_name))
@@ -337,13 +365,38 @@ class Crawler:
         print 'finished a category!'
         return self.get(url=task.api_search_url,headers=headers,param=param,proxies=proxies,cookie=None,callback=cb)
 
-
+    def get_category_output_filename(self,category_name):
+        return self.output_dir+"/"+category_name+".txt"
 
     def write2file(self,category_name,data):
         with open(self.output_dir+"/"+category_name+".txt","a+") as output:
             output.write(data)
             output.write("\n")
             #self.category_file.write(data)
+
+    def is_dead_task(self,task):
+        """
+        check if a Task object is invalid any more
+        """
+        time_now = time.time()
+        return (time_now - task.last_modified >= self.timeout_seconds)
+
+    def check_dead_tasks(self):
+        """
+        check dead tasks,remove them,log them,replace them with new tasks
+        """
+        added_categories = [  ]
+        for key in self.task_map.keys():
+            if self.is_dead_task(self.task_map[key]):
+                print "\033[0;33m Oops,this task is dead {}! \033[0m".format(key)
+                with open(self.error_dir+'/timeout.txt','a+') as f:
+                    f.write(key+"\n")
+                del self.task_map[key]
+                category = self.add_new_tasks()
+                added_categories.append(category)
+                #self.fetch_category(category)
+
+        return added_categories
 
     def when_zero_received_ext(self,category_name):
         # delete it from task map
@@ -405,6 +458,8 @@ class Crawler:
         self.task_map[category_name].start_offset = next_offset
         self.task_map[category_name].next_offset = next_offset
         self.task_map[category_name].num_found = num_found
+        # update the time stamp of when it is active last time
+        self.task_map[category_name].last_modified = time.time()
 
         if num_received == 0:
             self.when_zero_received_ext(category_name)
@@ -492,12 +547,16 @@ def run(wish_crawler):
     wish_crawler.add_tasks(tasks)
     # simultaneously fetch the categories
     for category_name in wish_crawler.task_map:
-        wish_crawler.fetch_category(category_name)
+        result = wish_crawler.fetch_category(category_name)
 
     while len(wish_crawler.task_map) != 0:
         time.sleep(10)
         print '\033[0;31m************************************************\033[0m'
         print "{0} category tasks remaining! ".format(len(wish_crawler.task_map))
+        added_categories = wish_crawler.check_dead_tasks()
+        for added_category in added_categories:
+            print "\033[0;35m fetching new category  {}! \033[0m".format(added_category)
+            wish_crawler.fetch_category(category_name)
         pass
 
     print "\033[1;33mEntering next pass now!\033[0m"
