@@ -144,8 +144,11 @@ class WishCallback(Callback):
     def execute(self):
         print "Data passed to me is: ",self.data
         #print self.response.content
-        self.wish.pipeline(self.data,self.response)
-        pass
+        try:
+            self.wish.pipeline(self.data,self.response)
+        except Exception,e:
+            print e
+            pass
 
 class Crawler:
     def __init__(self,
@@ -244,9 +247,9 @@ class Crawler:
                 self.task_list.append((key,value))
             else:
                 fetched_categories.append(value)
-                print "\033[0;35m {} is fetched!".format(key)
+                #print "\033[0;35m {} is fetched!".format(key)
 
-        print "\033[0;35m {} categories are fetched in total!".format(len(fetched_categories))
+        print "\033[0;35m {} categories are fetched in total!\033[0m".format(len(fetched_categories))
         #self.task_list = self.category_map.items()
         return self.task_list
 
@@ -304,10 +307,9 @@ class Crawler:
 
     def delete_task(self,task_name,task_id):
         try:
-            self.task_map.pop(task_name)
+            del self.task_map[task_name]
         except Exception,e:
             print e
-            pass
 
     def get(self,url,headers=None,param=None,proxies=None,cookie=None,callback=None):
         """
@@ -405,7 +407,10 @@ class Crawler:
     def when_zero_received_ext(self,category_name):
         # delete it from task map
         print "\033[4;32mFinished category: ",category_name,"\033[0m"
-        del self.task_map[category_name]
+        try:
+            del self.task_map[category_name]
+        except:
+            pass
         print "\033[4;31m{0} category tasks remaining! \033[0m".format(len(self.task_map))
         if len(self.task_list) > 0:
             try:
@@ -557,18 +562,16 @@ def run(wish_crawler):
         time.sleep(10)
         print '\033[0;31m************************************************\033[0m'
         print "{0} category tasks remaining! ".format(len(wish_crawler.task_map))
-        added_categories = wish_crawler.check_dead_tasks()
-        for added_category in added_categories:
-            print "\033[0;35m fetching new category  {}! \033[0m".format(added_category)
-            wish_crawler.fetch_category(category_name)
-        pass
+        try:
+            added_categories = wish_crawler.check_dead_tasks()
+            for added_category in added_categories:
+                print "\033[0;35m fetching new category  {}! \033[0m".format(added_category)
+                wish_crawler.fetch_category(category_name)
+        except Exception,e:
+            print e
 
     print "\033[1;33mEntering next pass now!\033[0m"
-
-    print "\033[0;31mExiting!"
-
-
-
+    print "\033[0;31mExiting!\033[0m"
 
 
 if __name__ == "__main__":

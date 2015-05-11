@@ -10,6 +10,12 @@ reload(sys)
 sys.setdefaultencoding('utf-8')
 
 
+def parse_items(line):
+    json_decoder = json.JSONDecoder()
+    result = json_decoder.decode(line)
+    #items = result['data']['results']
+    return result
+
 def parse_product(self,item):
         p = Item()
         p.contest_page_picture = item["contest_page_picture", u"N/A"]
@@ -92,7 +98,31 @@ def parse_tags(path='output/1'):
 
     return tags_all
 
+def filter_products(input_dir="output/4",output_filep="products/products.json"):
+    raw_fileps = os.listdir(input_dir)
+    # hold all the id of products
+    id_set = set()
+    output_file = open(output_filep,'a+')
+
+    for raw_filep in raw_fileps:
+        with open(input_dir+"/"+raw_filep) as raw_file:
+            for line in raw_file:
+                items = parse_items(line)
+                for item in items:
+                    if item['id'] in id_set:
+                        print 'id {} is already in the set'.format(item['id'])
+                        continue
+                    else:
+                        id_set.add(item['id'])
+                        output_file.write(json.dumps(item)+'\n')
+    print raw_fileps
+    #pass
+
+
 
 if __name__ == "__main__":
-    parse_tags(path='output/1')
+    #parse_tags(path='output/1')
+    filter_products()
+
+
 
