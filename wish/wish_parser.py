@@ -28,22 +28,22 @@ class WishParser(object):
         p = Item()
         p.contest_page_picture = item.get("contest_page_picture", u"N/A")
         #p.no = params["offset"] + j
-        p.product_id = item["id"]
+        p.product_id = item.get("id",u"N/A")
 
-        item = item["commerce_product_info"]["variations"][0]
-        p.localized_price_localized_value = item.get("localized_price", {}).get("localized_value", -1)
-        p.localized_price_currency_code = item.get("localized_price", {}).get("currency_code", u"N/A")
-        p.localized_retail_price_localized_value = item.get("localized_retail_price", {}).get("localized_value", -1)
-        p.localized_retail_price_currency_code = item.get("localized_retail_price", {}).get("currency_code", u"N/A")
-        p.localized_shipping_localized_value = item.get("localized_shipping", {}).get("localized_value", -1)
-        p.localized_shipping_currency_code = item.get("localized_shipping", {}).get("currency_code", u"N/A")
+        var_product = item.get("commerce_product_info", {}).get("variations", [{}])[0]
+        p.localized_price_localized_value = var_product.get("localized_price", {}).get("localized_value", -1)
+        p.localized_price_currency_code = var_product.get("localized_price", {}).get("currency_code", u"N/A")
+        p.localized_retail_price_localized_value = var_product.get("localized_retail_price", {}).get("localized_value", -1)
+        p.localized_retail_price_currency_code = var_product.get("localized_retail_price", {}).get("currency_code", u"N/A")
+        p.localized_shipping_localized_value = var_product.get("localized_shipping", {}).get("localized_value", -1)
+        p.localized_shipping_currency_code = var_product.get("localized_shipping", {}).get("currency_code", u"N/A")
         p.product_rating = item.get("product_rating", {}).get("rating", -1)
         p.rating_count = item.get("product_rating", {}).get("rating_count", -1)
         p.name = item.get("name", u"N/A")
-        p.ships_from = item.get("ships_from", u"N/A")
-        p.min_shipping_time = item.get("min_shipping_time", -1)
-        p.max_shipping_time = item.get("max_shipping_time", -1)
-        p.shipping_time_string = item.get("shipping_time_string", u"N/A")
+        p.ships_from = var_product.get("ships_from", u"N/A")
+        p.min_shipping_time = var_product.get("min_shipping_time", -1)
+        p.max_shipping_time = var_product.get("max_shipping_time", -1)
+        p.shipping_time_string = var_product.get("shipping_time_string", u"N/A")
         p.gender = item.get("gender", u"N/A")
         p.tags = build_tags_str(item.get("tags", []))
 
@@ -51,17 +51,21 @@ class WishParser(object):
         #products_writer.writerow(p.get_list())
 
     def parse(self):
+        i = 0
         for line in self.input_file:
+            item = None
             try:
                 item = self.parse_product(json2map(line))
                 self.csvwriter.writerow(item.get_list())
+                i = i + 1
+                #print "{}th item: {},tags: {}".format(i,item.product_id,[])
             except Exception,e:
                 #print json2map(line)
                 #print item['content_page_picture']
-                self.input_file.close()
-                self.output_file.close()
+                #self.input_file.close()
+                #self.output_file.close()
                 print e
-                sys.exit(-1)
+                #sys.exit(-1)
 
 def build_tags_str(tags_list):
     return " | ".join([x.get("name", "") for x in tags_list])

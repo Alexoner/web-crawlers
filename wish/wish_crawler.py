@@ -63,6 +63,33 @@ class Item:
         self.localized_shipping_currency_code = ""  # 商品估计运费货币代码
         self.tags = ""  # 商品标签
 
+    def get_header(self):
+        return [
+            'product_id',
+            'contest_page_picture',
+            'no',
+            'localized_price_localized_value',
+            'localized_price_currency_code',
+
+            'localized_shipping_localized_value',
+            'localized_shipping_currency_code',
+
+            'product_rating',
+            'rating_count',
+
+            'name',
+            'ships_from',
+
+            'min_shipping_time',
+            'max_shipping_time',
+            'shipping_time_string',
+
+            'gender',
+
+            'tags'
+
+        ]
+
     def get_list(self):
         return [
             self.product_id.encode("utf-8"),
