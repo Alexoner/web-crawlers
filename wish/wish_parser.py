@@ -1,44 +1,81 @@
 #!/usr/bin/env python2
 #-*- coding: UTF8 -*-
 
+import csv
 import json
 import os
 import sys
+import time
 from utils import merge_dicts
+from wish_crawler import Item
 
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
+class WishParser(object):
 
-def parse_items(line):
+    def __init__(self,
+                input_filep="products/products.json.bak",
+                output_filep="products/products.csv"):
+        self.input_filep = input_filep
+        self.output_filep = output_filep
+        self.input_file =  open(self.input_filep,'r')
+        print self.input_file
+        self.output_file  = open(self.output_filep,'w')
+        self.csvwriter  = csv.writer(self.output_file,delimiter='\5')
+
+    def parse_product(self,item):
+        p = Item()
+        p.contest_page_picture = item.get("contest_page_picture", u"N/A")
+        #p.no = params["offset"] + j
+        p.product_id = item["id"]
+
+        item = item["commerce_product_info"]["variations"][0]
+        p.localized_price_localized_value = item.get("localized_price", {}).get("localized_value", -1)
+        p.localized_price_currency_code = item.get("localized_price", {}).get("currency_code", u"N/A")
+        p.localized_retail_price_localized_value = item.get("localized_retail_price", {}).get("localized_value", -1)
+        p.localized_retail_price_currency_code = item.get("localized_retail_price", {}).get("currency_code", u"N/A")
+        p.localized_shipping_localized_value = item.get("localized_shipping", {}).get("localized_value", -1)
+        p.localized_shipping_currency_code = item.get("localized_shipping", {}).get("currency_code", u"N/A")
+        p.product_rating = item.get("product_rating", {}).get("rating", -1)
+        p.rating_count = item.get("product_rating", {}).get("rating_count", -1)
+        p.name = item.get("name", u"N/A")
+        p.ships_from = item.get("ships_from", u"N/A")
+        p.min_shipping_time = item.get("min_shipping_time", -1)
+        p.max_shipping_time = item.get("max_shipping_time", -1)
+        p.shipping_time_string = item.get("shipping_time_string", u"N/A")
+        p.gender = item.get("gender", u"N/A")
+        p.tags = build_tags_str(item.get("tags", []))
+
+        return p
+        #products_writer.writerow(p.get_list())
+
+    def parse(self):
+        for line in self.input_file:
+            try:
+                item = self.parse_product(json2map(line))
+                self.csvwriter.writerow(item.get_list())
+            except Exception,e:
+                #print json2map(line)
+                #print item['content_page_picture']
+                self.input_file.close()
+                self.output_file.close()
+                print e
+                sys.exit(-1)
+
+def build_tags_str(tags_list):
+    return " | ".join([x.get("name", "") for x in tags_list])
+
+
+def json2map(line):
+    """
+    json string to dictionary data structure
+    """
     json_decoder = json.JSONDecoder()
     result = json_decoder.decode(line)
     #items = result['data']['results']
     return result
 
-def parse_product(self,item):
-        p = Item()
-        p.contest_page_picture = item["contest_page_picture", u"N/A"]
-        p.no = params["offset"] + j
-        p.product_id = item["id"]
-
-        var_product = item["commerce_product_info"]["variations"][0]
-        p.localized_price_localized_value = var_product.get("localized_price", {}).get("localized_value", -1)
-        p.localized_price_currency_code = var_product.get("localized_price", {}).get("currency_code", u"N/A")
-        p.localized_retail_price_localized_value = var_product.get("localized_retail_price", {}).get("localized_value", -1)
-        p.localized_retail_price_currency_code = var_product.get("localized_retail_price", {}).get("currency_code", u"N/A")
-        p.localized_shipping_localized_value = var_product.get("localized_shipping", {}).get("localized_value", -1)
-        p.localized_shipping_currency_code = var_product.get("localized_shipping", {}).get("currency_code", u"N/A")
-        p.product_rating = item.get("product_rating", {}).get("rating", -1)
-        p.rating_count = item.get("product_rating", {}).get("rating_count", -1)
-        p.name = item.get("name", u"N/A")
-        p.ships_from = var_product.get("ships_from", u"N/A")
-        p.min_shipping_time = var_product.get("min_shipping_time", -1)
-        p.max_shipping_time = var_product.get("max_shipping_time", -1)
-        p.shipping_time_string = var_product.get("shipping_time_string", u"N/A")
-        p.gender = item.get("gender", u"N/A")
-        p.tags = build_tags_str(item.get("tags", []))
-        products_writer.writerow(p.get_list())
 
 def parse_tags_from_file(path="output/1/computer & office.txt"):
     tags_all = dict()
@@ -107,7 +144,7 @@ def filter_products(input_dir="output/4",output_filep="products/products.json"):
     for raw_filep in raw_fileps:
         with open(input_dir+"/"+raw_filep) as raw_file:
             for line in raw_file:
-                items = parse_items(line)
+                items = json2map(line)
                 for item in items:
                     if item['id'] in id_set:
                         print 'id {} is already in the set'.format(item['id'])
@@ -115,6 +152,7 @@ def filter_products(input_dir="output/4",output_filep="products/products.json"):
                     else:
                         id_set.add(item['id'])
                         output_file.write(json.dumps(item)+'\n')
+        time.sleep(0.1)
     print raw_fileps
     #pass
 
@@ -122,7 +160,11 @@ def filter_products(input_dir="output/4",output_filep="products/products.json"):
 
 if __name__ == "__main__":
     #parse_tags(path='output/1')
-    filter_products()
+    #filter_products()
+    parser = WishParser()
+    parser.parse()
+    parser.output_file.close()
+    parser.input_file.close()
 
 
 

@@ -65,9 +65,9 @@ class Item:
 
     def get_list(self):
         return [
+            self.product_id.encode("utf-8"),
             self.contest_page_picture.encode("utf-8"),
             self.no,
-            self.product_id.encode("utf-8"),
 
             self.localized_price_localized_value,
             self.localized_price_currency_code.encode("utf-8"),
@@ -253,6 +253,14 @@ class Crawler:
         #self.task_list = self.category_map.items()
         return self.task_list
 
+    def read_invalid_tags(self,error_tags_filep="error/error.txt.0511"):
+        """
+        get invalid tags
+        """
+        with open(error_tags_filep,'r') as f:
+            for line in f:
+                pass
+
     def add_new_tasks(self):
         """
         add a new task to running map/queue from list of category tuples
@@ -262,7 +270,7 @@ class Crawler:
             new_tasks = [self.task_list.pop(0)]
             self.add_tasks(new_tasks)
             #self.fetch_category(new_tasks[0][1])
-            print "\033[4;31m new category {0}".format(new_tasks[0][1])
+            #print "\033[4;31m new category {0}".format(new_tasks[0][1])
             return new_tasks[0][1]
         except Exception,e:
             print e
@@ -319,9 +327,11 @@ class Crawler:
             self.session.headers[key] = headers[key]
         url_true = url+"?"+urllib.urlencode(param)
         print "GET: "+url+"?"+urllib.urlencode(param)
-        print 'Proxy: '+proxies['http']
+        print 'Proxy: '+proxies['https']
         #future = self.session.get(url,data=param,proxies=proxies,cookie=cookie,background_callback=callback)
-        future = self.session.get(url_true,proxies=proxies,background_callback=callback)
+        #future = self.session.get(url_true,proxies=proxies,max_retries=5,background_callback=callback)
+        future = self.session.get(url_true,params=None, data=None, headers=None, cookies=None, files=None, auth=None,
+                                  timeout=self.timeout_seconds, allow_redirects=True, proxies=proxies,background_callback=callback)
         return future
 
     def post(self,url,headers=None,param=None,proxies=None,cookie=None,callback=None):
@@ -394,11 +404,11 @@ class Crawler:
         added_categories = [  ]
         for key in self.task_map.keys():
             if self.is_dead_task(self.task_map[key]):
-                print "\033[0;33m Oops,this task is dead {}! \033[0m".format(key)
                 with open(self.error_dir+'/timeout.txt','a+') as f:
                     f.write(key+"\n")
                 del self.task_map[key]
                 category = self.add_new_tasks()
+                print "\033[0;33m Oops,this task is dead: {}!\033[0m\nNew task:{} ".format(key,category)
                 added_categories.append(category)
                 #self.fetch_category(category)
 
@@ -516,8 +526,9 @@ class Crawler:
 
     def get_proxy(self):
         proxy = self.proxy_addresses[self.rand.randint(0,self.proxy_number-1)]
-        return {"http":proxy,
-                "https":proxy}
+        #return {"http":proxy,
+                #"https":proxy}
+        return {'https':proxy}
 
     def crawl(self):
         self.read_categories_file()
@@ -548,7 +559,7 @@ def run(wish_crawler):
     print "\033[4;32mnumber of categories: ",len(total_categories),"\033[0m"
     sys.stdin.read(1)
     # max concurrent connection number
-    max_con = 1000
+    max_con = 100
     # add a batch of categories to task map
     i = 0
     tasks = wish_crawler.task_list[i*max_con:(i+1)*max_con]
@@ -565,7 +576,7 @@ def run(wish_crawler):
         try:
             added_categories = wish_crawler.check_dead_tasks()
             for added_category in added_categories:
-                print "\033[0;35m fetching new category  {}! \033[0m".format(added_category)
+                print "\033[0;35m fetching new category  {}! \033[0m\n".format(added_category)
                 wish_crawler.fetch_category(category_name)
         except Exception,e:
             print e
