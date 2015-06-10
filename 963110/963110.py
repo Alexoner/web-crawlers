@@ -149,8 +149,6 @@ if __name__ == "__main__":
             # pass
     else:
         # print query_crop_with_payload(sys.argv[2])
-        print sys.argv[2]
-        # print unicode(query_crop("杨桃")).encode("utf-8")
         # print query_crop("杨桃")
         print query_crop(sys.argv[2])
         pass
