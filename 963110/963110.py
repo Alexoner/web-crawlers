@@ -6,12 +6,16 @@ import urllib2
 import time
 import sys
 import json
-from bs4 import BeautifulSoup
+try:
+    from bs4 import BeautifulSoup
+except:
+    from BeautifulSoup import BeautifulSoup
 
 reload(sys)
 sys.setdefaultencoding("utf-8")
 
 url_search = 'http://wiki.963110.com.cn/index.php?search-default'
+url_search_20150610 = 'http://wiki.963110.com.cn/index.php?search-kw'
 url_news = 'http://www.963110.com.cn/wcm/index.php?m=content&c=index&a=lists&catid=7'
 
 
@@ -23,16 +27,16 @@ def query_crop(name=""):
         if name == "":
             return
         data = {"searchtext": "", "full": "1"}
+        # data = {"searchtext": "", "full": "1", "search": "搜 索"}
         data["searchtext"] = name
         payload = urllib.urlencode(data)
-        # print "payload: " + payload
+        # print("request: " + url_search + "?"+payload)
         req = urllib2.urlopen(url_search, payload)
         line = req.read()
-        dump2file(line, "/tmp/log/963110/query.log")
+        # dump2file(line, "/tmp/log/963110/query.log")
         return extract_article(line)
     except BaseException, e:
-        # print e
-        pass
+        print e
     finally:
         pass
 
@@ -44,7 +48,7 @@ def query_crop_with_payload(name="", payload=""):
     try:
         if name == "":
             return
-        # print "payload: " + payload
+        print "payload: " + payload
         req = urllib2.urlopen(url_search, payload)
         line = req.read()
         dump2file(line, "/tmp/log")
@@ -144,7 +148,9 @@ if __name__ == "__main__":
             # print str(i['text'])
             # pass
     else:
-        query_crop_with_payload(sys.argv[1])
+        # print query_crop_with_payload(sys.argv[2])
+        print sys.argv[2]
         # print unicode(query_crop("杨桃")).encode("utf-8")
         # print query_crop("杨桃")
+        print query_crop(sys.argv[2])
         pass
