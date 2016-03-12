@@ -114,12 +114,31 @@ Referer: https://www.b-europe.com/Travel
 Accept-Encoding: gzip, deflate
 Accept-Language: en-US,en;q=0.8,zh-CN;q=0.6,zh-TW;q=0.4
 Cookie: websitecrosssite_production#lang=en; SitePreferences_www.b-europe.com={"c":"OT","l":"en","r":"EUR","u":false,"h":"64b729c2-7b18-4dcd-a42e-980cd747c15f"}; referrerInfo_64b729c2-7b18-4dcd-a42e-980cd747c15f=; _ga=GA1.2.30767610.1457526788; _dc_gtm_UA-4476891-6=1; _wt.mode-984274=WT3y5sb-9KDcn8~; _wt.user-984274=WT35cpysxR96HIwBMSM7JqL9RjcVrXAYX2Wn-o2ZlzMm3Nx4yoVR6VpxoH2hH43arkqT4CWcYKwKZaobsip7U4ulUsnwwLyNcm9djjL0shB4lY~
+
+Request Payload:
+{
+    "Criteria": "München Hbf (De) ( Munich, Munchen, Muenchen )",
+    "OriginOrDestination": "Destination",
+    "RCodeRestrictions": null,
+    "GetGuidance": true,
+    "AjaxCallOrigin": "railtour"
+}
+
+Response:
+[{
+    "Title": "München Hbf (De) ( Munich, Munchen, Muenchen )",
+    "DisplayTitle": "München Hbf (De)",
+    "RCode": "DEBEG",
+    "Synonyms": "Munich, Munchen, Muenchen",
+    "InfoIcon": "icon-icoTrain"
+}]
 ```
 
 ## query landing page
 https://www.b-europe.com/Travel/Booking/Tickets?autoactivatestep2=true&origin=FRPAR&dest=DEBEG&traveltype=OneWay&outbound=10%2F03%2F2016&outboundt=&outboundtp=DepartureTime&inbound=&inboundt=&inboundtp=DepartureTime&comfortclass=2&ticketlanguage=en&travelparty=%257B%2522P%2522%253A%255B%257B%2522T%2522%253A%25220%2522%257D%252C%257B%2522T%2522%253A%25224%2522%257D%252C%257B%2522T%2522%253A%25226%2522%257D%252C%257B%2522T%2522%253A%252212%2522%257D%252C%257B%2522T%2522%253A%2522Y%2522%257D%252C%257B%2522T%2522%253A%2522A%2522%257D%252C%257B%2522T%2522%253A%2522S%2522%257D%255D%252C%2522M%2522%253Afalse%257D#stepTravelWish
 
 https://www.b-europe.com/Travel/Booking/Tickets?autoactivatestep2=true&origin=FRPAR&dest=DEBEG&traveltype=OneWay&outbound=10/03/2016&outboundt=&outboundtp=DepartureTime&inbound=&inboundt=&inboundtp=DepartureTime&comfortclass=2&ticketlanguage=en&travelparty={"P":[{"T":"0"},{"T":"4"},{"T":"6"},{"T":"12"},{"T":"Y"},{"T":"A"},{"T":"S"}],"M":false}#stepTrainSelection
+travelparty={"P":[{"T":"0"},{"T":"4","F":[],"R":[]},{"T":"6","F":[],"R":[]},{"T":"12","F":[],"R":[]},{"T":"Y","F":[],"R":[]},{"T":"A","F":[],"R":[]},{"T":"S","F":[],"R":[]}],"M":false}
 
 ## ajax query tickets
 ```code
