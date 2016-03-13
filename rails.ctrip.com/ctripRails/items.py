@@ -10,5 +10,10 @@ import scrapy
 
 class CtriprailsItem(scrapy.Item):
     # define the fields for your item here like:
-    name = scrapy.Field()
-    pass
+    BookingData = scrapy.Field()
+    LastTimeLow = scrapy.Field()
+    NoResult = scrapy.Field()
+    ShowHtml = scrapy.Field()
+    productsCount = scrapy.Field()
+    showBackHtml = scrapy.Field()
+    startCityCode = scrapy.Field()

@@ -37,6 +37,25 @@ Cookie: ASP.NET_SessionSvc=MTAuOC45Mi42fDkwOTB8amlucWlhb3xkZWZhdWx0fDE0NDkxMzUxM
 
 ```
 
+```python
+{
+'Accept':*/*
+'Accept-Encoding':'gzip, deflate'
+'Accept-Language':'en-US,en;q=0.8,zh-CN;q=0.6,zh-TW;q=0.4'
+'Cache-Control':'no-cache'
+'Connection':'keep-alive'
+'Content-Length':366
+'Content-Type':'application/x-www-form-urlencoded; charset=UTF-8'
+'Cookie':'ASP.NET_SessionSvc=MTAuOC45Mi4xNzJ8OTA5MHxqaW5xaWFvfGRlZmF1bHR8MTQ0OTEzNzUxNzEwMg; ASP.NET_SessionId=ofldmiolbnioxpjvjzon0v22; _bfa=1.1457853128485.3ik6k8.1.1457853128485.1457853128485.1.1; _bfs=1.1'
+'Host':'rails.ctrip.com'
+'If-Modified-Since':'Thu, 01 Jan 1970 00:00:00 GMT'
+'Origin':'http://rails.ctrip.com'
+'Pragma':'no-cache'
+'Referer':'http://rails.ctrip.com/ptp/FRPAR-DEMUC?departureDate=2016-03-15&starttime=06:00-24:00&searchType=0&pageStatus=0&passHolders=0&adult=2&child=0&youth=0&seniors=0'
+'User-Agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.116 Safari/537.36'
+}
+```
+
 ## cookie
 1. landing page set-cookie
 2. landing page XPath: "/html/head/script[26]"
