@@ -51,6 +51,23 @@ readBfa: function() {
                     this.bfa = [1, a, this.uniqueId_().toString(36), 1, a, a, 0, 0],
                     this._isNewVisitor = 1)
                 },
+
+sessRead: function() {
+                    var a = this.getItem("_bfs", "", !0);
+                    (!this._isNewVisitor && a && y._bfs.test(a) ? (this.bfs = a.split("."),
+                    this.bfs[1] = this.plus_(this.bfs[1])) : (this._isNewSession = 1,
+                    this.bfs = [1, 1],
+                    this.bfa[4] = this.bfa[5],
+                    this.bfa[5] = this.enterTime,
+                    this.bfa[6] = this.plus_(this.bfa[6])));
+                    this.bfa[7] = this.plus_(this.bfa[7]);
+                    this.sessWrite()
+                },
+
+sessWrite: function() {
+                    this.setItem("_bfa", this.bfa.join("."), 63072E6);
+                    this.setItem("_bfs", this.bfs.join("."), 18E5)
+                },
 this.uniqueId_ = function() {
     return c.getRand()^c.CLI.getHash()&2147483647
 }
