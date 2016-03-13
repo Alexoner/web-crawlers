@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from collections import OrderedDict
 import Cookie
 import datetime
 import json
@@ -10,7 +11,7 @@ import time
 import urllib
 import scrapy
 from ctripRails.spiders import utils
-from ctripRails.items import  CtriprailsItem
+from ctripRails.items import CtriprailsItem
 
 
 class CtripSpider(scrapy.Spider):
@@ -20,6 +21,32 @@ class CtripSpider(scrapy.Spider):
     start_urls = (
         'http://rails.ctrip.com/ptp/FRPAR-DEMUC?departureDate=2016-03-15&starttime=06:00-24:00&searchType=0&pageStatus=0&passHolders=0&adult=2&child=0&youth=0&seniors=0',
     )
+
+    formKeys = [
+        "adults",
+        "children",
+        "seniors",
+        "youth",
+        "departureDate",
+        "departureTimeHigh",
+        "departureTimeLow",
+        "fromCityCode",
+        "toCityCode",
+        "arriveDate",
+        "startCityName",
+        "destCityName",
+        "backTimeHigh",
+        "backTimeLow",
+        "passHolders",
+        "searchType",
+        "pageStatus",
+        "data",
+    ]
+
+    def start_request(self):
+        import ipdb
+        ipdb.set_trace()
+        pass
 
     def parse(self, response):
         with open('/tmp/a.html', 'w') as f:
@@ -35,16 +62,49 @@ class CtripSpider(scrapy.Spider):
             '',
             cookie)
         print('new cookie: {}'.format(cookie))
-        #  self.logger.info('new pages\'cookie is {}'.format(cookie), '')
+        self.logger.info('new pages\'cookie is {}%s'.format(cookie), '')
         simpleCookie = Cookie.SimpleCookie()
         simpleCookie.load(cookie)
         cookieDict = {}
         for key, morsel in simpleCookie.items():
             cookieDict[key] = morsel.value
 
+        parameters = {
+            "adults": "2",
+            "children": "0",
+            "seniors": "0",
+            "youth": "0",
+            "departureDate": "2016-03-15",
+            "departureTimeHigh": "24:00",
+            "departureTimeLow": "06:00",
+            "fromCityCode": "FRPAR",
+            "toCityCode": "DEMUC",
+            "arriveDate": "",
+            "startCityName": "巴黎",
+            "destCityName": "慕尼黑",
+            "backTimeHigh": "12:00",
+            "backTimeLow": "06:00",
+            "passHolders": "0",
+            "searchType": "0",
+            "pageStatus": "0",
+            "data": "null",
+        }
+
+        formdict = OrderedDict(
+            [
+                (key, parameters[key]) for key in self.formKeys
+            ])
+
         request = scrapy.FormRequest(
-            'http://rails.ctrip.com/international/Ajax/PTPProductListHandler.ashx?Action=GetPTPProductList'.format(),
-            formdata={'value': '{"adults":"2","children":"0","seniors":"0","youth":"0","departureDate":"2016-03-15","departureTimeHigh":"24:00","departureTimeLow":"06:00","fromCityCode":"FRPAR","toCityCode":"DEMUC","arriveDate":"","startCityName":"巴黎","destCityName":"慕尼黑","backTimeHigh":"12:00","backTimeLow":"06:00","passHolders":"0","searchType":"0","pageStatus":"0","data":null}'},
+            'http://rails.ctrip.com/international/Ajax/PTPProductListHandler.ashx?Action=GetPTPProductList',
+            formdata={
+                'value': re.sub(
+                    r'\s',
+                    '',
+                    json.dumps(
+                        formdict,
+                        encoding='utf-8'))},
+            #  callback=lambda parameters: self.parse_item(response, parameters),
             callback=self.parse_item,
             method='POST',
             headers={
@@ -64,23 +124,24 @@ class CtripSpider(scrapy.Spider):
                 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.116 Safari/537.36',
             },
             cookies=cookieDict,
-            #  meta=None,
+            meta={'item': json.dumps(parameters)},
             #  encoding='utf-8'
         )
 
-        self.logger.info('', request)
+        self.logger.info('%s', request)
 
         return request
 
     def parse_item(self, response):
         self.logger.info("Visited %s", response.url)
+        self.logger.info("meta info: %s", response.meta)
         data = response.body.decode(response.encoding).encode('utf-8')
         with open('/tmp/item.json', 'w') as f:
             f.write(data)
 
         item = CtriprailsItem(json.loads(data))
 
-        return item
+        yield item
 
 
 class CtripBFA(object):
@@ -156,6 +217,7 @@ class CtripBFA(object):
     def __init__(self):
         self.enterTime = int(time.time() * 1000)
         self.cookie = ''
+        self.cookies = []
         self.c = CtripBFA.C()
         self.bfa = []
         self.bfs = []
@@ -193,7 +255,7 @@ class CtripBFA(object):
         domain = ';domain=crip.com'
         if d >= 0:
             expire = ';expires=' + \
-                datetime.datetime.utcfromtimestamp(time.time()).strftime(
+                datetime.datetime.utcfromtimestamp(time.time() + d).strftime(
                     "%a, %d %b %Y %H:%M:%S GMT")
         if self.cookie:
             self.cookie += ';' + key + '=' + \
@@ -201,3 +263,10 @@ class CtripBFA(object):
         else:
             self.cookie = key + '=' + \
                 urllib.quote(value) + domain + ';path=/' + expire
+        self.cookies.append({
+            "name": key,
+            "value": value,
+            "expires": expire,
+            "path": "/",
+            "domain": domain,
+        })
