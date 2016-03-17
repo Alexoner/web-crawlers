@@ -43,15 +43,15 @@ NEWSPIDER_MODULE = 'ctripRails.spiders'
 
 # Enable or disable spider middlewares
 # See http://scrapy.readthedocs.org/en/latest/topics/spider-middleware.html
-#SPIDER_MIDDLEWARES = {
-#    'ctripRails.middlewares.MyCustomSpiderMiddleware': 543,
-#}
+#  SPIDER_MIDDLEWARES = {
+  #  'ctripRails.middlewares.MyCustomSpiderMiddleware': 543,
+#  }
 
 # Enable or disable downloader middlewares
 # See http://scrapy.readthedocs.org/en/latest/topics/downloader-middleware.html
-#DOWNLOADER_MIDDLEWARES = {
-#    'ctripRails.middlewares.MyCustomDownloaderMiddleware': 543,
-#}
+DOWNLOADER_MIDDLEWARES = {
+  'ctripRails.middlewares.ProxyDownloaderMiddleware': 543,
+}
 
 # Enable or disable extensions
 # See http://scrapy.readthedocs.org/en/latest/topics/extensions.html
@@ -83,3 +83,10 @@ NEWSPIDER_MODULE = 'ctripRails.spiders'
 #HTTPCACHE_DIR='httpcache'
 #HTTPCACHE_IGNORE_HTTP_CODES=[]
 #HTTPCACHE_STORAGE='scrapy.extensions.httpcache.FilesystemCacheStorage'
+
+
+import os
+import sys
+
+DIRNAME = os.path.dirname(__file__)
+PROXY_LIST = '{}/proxies.txt'.format(DIRNAME)
