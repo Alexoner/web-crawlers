@@ -15,7 +15,7 @@ from ctripRails.items import CtriprailsItem
 
 
 class CtripSpider(scrapy.Spider):
-    handle_httpstatus_list = [400, 404]
+    handle_httpstatus_list = [400, 404, 502]
     name = "ctrip"
     allowed_domains = ["rails.ctrip.com"]
     start_urls = (
@@ -123,9 +123,11 @@ class CtripSpider(scrapy.Spider):
                 'Referer': 'http://rails.ctrip.com/ptp/FRPAR-DEMUC?departureDate=2016-03-15&starttime=06:00-24:00&searchType=0&pageStatus=0&passHolders=0&adult=2&child=0&youth=0&seniors=0',
                 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.116 Safari/537.36',
             },
-            cookies=cookieDict,
-            meta={'item': json.dumps(parameters)},
-            #  encoding='utf-8'
+            cookies=cookieDict, # not used actually
+            meta={
+                'item': json.dumps(parameters),
+            },
+            encoding='utf-8'
         )
 
         self.logger.info('%s', request)
