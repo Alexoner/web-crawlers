@@ -51,10 +51,12 @@ class ProxyDownloaderMiddleware(object):
 
     def process_exception(self, request, exception, spider):
         proxy = request.meta['proxy']
-        logger.debug('Removing failed proxy <%s>, %d proxies left' % (
-            proxy, len(self.proxies)))
+        #  logger.debug('Removing failed proxy <%s>, %d proxies left' % (
+            #  proxy, len(self.proxies)))
         try:
             if proxy in self.proxies:
-                del self.proxies[proxy]
+                # don't delete
+                #  del self.proxies[proxy]
+                pass
         except ValueError:
             pass

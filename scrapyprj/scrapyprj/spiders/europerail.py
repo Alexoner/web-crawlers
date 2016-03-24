@@ -1,13 +1,10 @@
 # -*- coding: utf-8 -*-
 
-from lxml import html as html_parser
 import os
 import random
-import re
 import sys
 import time
 import scrapy
-import urllib2
 
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -34,7 +31,6 @@ if not os.path.exists(dir_output):
 
 #----------------------------------------------------------------------
 def read_log_file(filename):
-    """"""
     datasource = []
     if os.path.exists(filename):
         lines = open(filename).readlines()
@@ -48,7 +44,9 @@ def read_log_file(filename):
 
 #----------------------------------------------------------------------
 def read_already_got():
-    """"""
+    """
+        read downloaded requests form log
+    """
     dsok = read_log_file(file_ok)
     dserror = read_log_file(file_error)
     dsnoline = read_log_file(file_failed)
@@ -64,17 +62,23 @@ def read_already_got():
 
 #----------------------------------------------------------------------
 def get_sleeptime():
-    """"""
+    """
+        random sleep
+    """
     return random.randint(40, 100)
 
 #----------------------------------------------------------------------
 def get_time():
-    """"""
+    """
+        current time with format
+    """
     return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
 
 #----------------------------------------------------------------------
 def read_datasource(filename):
-    """"""
+    """
+        accumulate seed requests
+    """
     print 'loading pairs alreay got ...'
     already_got = read_already_got()
     print 'loaded pairs already got, num = %d' % len(already_got)
@@ -92,15 +96,14 @@ def read_datasource(filename):
             ds = (fs, f, ts, t)
             if ds not in already_got:
                 datasource.append(ds)
-                pass
-            pass
-        pass
     print 'done, datasource num = %d' % len(datasource)
     return datasource
 
 #----------------------------------------------------------------------
 def has_train(html):
-    """"""
+    """
+        got data
+    """
     if html.find('没有找到符合您搜索条件的车次') >= 0:
         return False
     else:
@@ -108,11 +111,10 @@ def has_train(html):
 
 #----------------------------------------------------------------------
 def is_error(html):
-    """"""
-    if not html or html.find('ferror') >= 0:
-        return True
-    else:
-        return False
+    """
+        error page
+    """
+    return not html or html.find('ferror') >= 0
 
 class EuroperailSpider(scrapy.Spider):
     handle_httpstatus_list = [400, 404, 502]
@@ -131,6 +133,7 @@ class EuroperailSpider(scrapy.Spider):
 
     def start_requests(self):
 
+        i = 0
         for fs, f, ts, t in self.datasource:
             for go_date in go_date_list:
                 got_train = False
@@ -141,30 +144,34 @@ class EuroperailSpider(scrapy.Spider):
                         (fs, ts, f, t, go_date, time_segment)
                     self.logger.debug('seed url: %s', url)
 
-                    yield scrapy.Request(url,
-                                         callback=self.parse_seed,
-                                         headers={
-                                             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-                                             "Accept-Encoding": "gzip, deflate, sdch",
-                                             "Accept-Language": "zh-CN,zh;q=0.8,en;q=0.6,ja;q=0.4,es;q=0.2,pt;q=0.2,ru;q=0.2,zh-TW;q=0.2",
-                                             "Connection": "keep-alive",
-                                             "Host": "www.europerail.cn",
-                                             "Referer": "http://www.europerail.cn/timetable/",
-                                             "Upgrade-Insecure-Requests": "1",
-                                             "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.87 Safari/537.36",
-                                         },
-                                         meta={
-                                             'item': {
-                                                 'uid': 'seed',
-                                                 'fs': fs,
-                                                 'ts': ts,
-                                                 'f': f,
-                                                 't': t,
-                                                 'go_date': go_date,
-                                                 'time_segment': time_segment,
-                                             },
-                                         }
-                                         )
+                    i += 1
+                    yield scrapy.Request(
+                        url,
+                        callback=self.parse_seed,
+                        headers={
+                            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+                            "Accept-Encoding": "gzip, deflate, sdch",
+                            "Accept-Language": "zh-CN,zh;q=0.8,en;q=0.6,ja;q=0.4,es;q=0.2,pt;q=0.2,ru;q=0.2,zh-TW;q=0.2",
+                            "Connection": "keep-alive",
+                            "Host": "www.europerail.cn",
+                            "Referer": "http://www.europerail.cn/timetable/",
+                            "Upgrade-Insecure-Requests": "1",
+                            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.87 Safari/537.36",
+                        },
+                        meta={
+                            'item': {
+                                'uid': 'seed',
+                                'fs': fs,
+                                'ts': ts,
+                                'f': f,
+                                't': t,
+                                'go_date': go_date,
+                                'time_segment': time_segment,
+                            },
+                            'dont_merge_cookies': True,
+                            'cookiejar': i,
+                        }
+                    )
 
     def parse(self, response):
         pass
@@ -182,33 +189,36 @@ class EuroperailSpider(scrapy.Spider):
                 extra_info['time_segment'],
                 opentime,
             )
-        yield scrapy.Request(url,
-                             callback=self.parse_detail,
-                             headers={
-                                 "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-                                 "Accept-Encoding": "gzip, deflate, sdch",
-                                 "Accept-Language": "zh-CN,zh;q=0.8,en;q=0.6,ja;q=0.4,es;q=0.2,pt;q=0.2,ru;q=0.2,zh-TW;q=0.2",
-                                 "Connection": "keep-alive",
-                                 "Host": "www.europerail.cn",
-                                 "Referer": response.url,
-                                 "Upgrade-Insecure-Requests": "1",
-                                 "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.87 Safari/537.36",
-                                 "X-Requested-With": "XMLHttpRequest",
-                             },
-                             meta={
-                                 'item': {
-                                     'sid': sid,
-                                     'uid': 'detail',
-                                     'fs': extra_info['fs'],
-                                     'ts': extra_info['ts'],
-                                     'f': extra_info['f'],
-                                     't': extra_info['t'],
-                                     'go_date': extra_info['go_date'],
-                                     'time_segment': extra_info['time_segment'],
-                                     'referer': url,
-                                 },
-                             }
-                             )
+        yield scrapy.Request(
+            url,
+            callback=self.parse_detail,
+            headers={
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+                "Accept-Encoding": "gzip, deflate, sdch",
+                "Accept-Language": "zh-CN,zh;q=0.8,en;q=0.6,ja;q=0.4,es;q=0.2,pt;q=0.2,ru;q=0.2,zh-TW;q=0.2",
+                "Connection": "keep-alive",
+                "Host": "www.europerail.cn",
+                "Referer": response.url,
+                "Upgrade-Insecure-Requests": "1",
+                "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.87 Safari/537.36",
+                "X-Requested-With": "XMLHttpRequest",
+            },
+            meta={
+                'item': {
+                    'sid': sid,
+                    'uid': 'detail',
+                    'fs': extra_info['fs'],
+                    'ts': extra_info['ts'],
+                    'f': extra_info['f'],
+                    't': extra_info['t'],
+                    'go_date': extra_info['go_date'],
+                    'time_segment': extra_info['time_segment'],
+                    'referer': url,
+                },
+                'dont_merge_cookies': False,
+                'cookiejar': response.meta['cookiejar'],
+            }
+        )
 
     def parse_detail(self, response):
         extra_info = response.meta['item']
@@ -232,7 +242,7 @@ class EuroperailSpider(scrapy.Spider):
             print 'sleep %s seconds' % stime
 
             yield scrapy.Request(
-                extra_info['item']['referer'],
+                extra_info['referer'],
                 callback=self.parse_seed,
                 headers={
                     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
@@ -247,13 +257,14 @@ class EuroperailSpider(scrapy.Spider):
                 meta={
                     'item': {
                         'uid': 'seed',
-                        'fs': extra_info['item']['fs'],
-                        'ts': extra_info['item']['ts'],
-                        'f': extra_info['item']['f'],
-                        't': extra_info['item']['t'],
-                        'go_date': extra_info['item']['go_date'],
-                        'time_segment': extra_info['item']['time_segment'],
+                        'fs': extra_info['fs'],
+                        'ts': extra_info['ts'],
+                        'f': extra_info['f'],
+                        't': extra_info['t'],
+                        'go_date': extra_info['go_date'],
+                        'time_segment': extra_info['time_segment'],
                     },
+                    'dont_merge_cookies': True,
                 }
             )
             #  time.sleep(stime)
@@ -279,9 +290,8 @@ class EuroperailSpider(scrapy.Spider):
             if allow_page_turning:
                 ## 下面开始翻页逻辑 ##
                 # 解析当前最大出发时间
-                tree = html_parser.fromstring(response.body)
-                start_time_list = tree.xpath(
-                    "//table[@class='zy_guding_1']/tr/td[2]/span/text()")
+                start_time_list = response.xpath(
+                    "//table[@class='zy_guding_1']/tr/td[2]/span/text()").extract()
                 if not start_time_list:
                     print 'failed to get start time list using xpath.'
                 else:
@@ -304,10 +314,10 @@ class EuroperailSpider(scrapy.Spider):
                         url = 'http://www.europerail.cn/timetable/inc/PTPSearch.aspx?sid=%s&f=%s&t=%s&date=%s&time=%s&anum=1&ynum=0&cnum=0&snum=0&pass=false&_=%s' % \
                             (
                                 extra_info['sid'],
-                                extra_info['item']['f'],
-                                extra_info['item']['t'],
-                                extra_info['item']['go_date'],
-                                extra_info['item']['time_segment'],
+                                extra_info['f'],
+                                extra_info['t'],
+                                extra_info['go_date'],
+                                time_segment,
                                 '%d' % (time.time() * 1000),
                             )
                         yield scrapy.Request(
@@ -327,13 +337,14 @@ class EuroperailSpider(scrapy.Spider):
                             meta={
                                 'item': {
                                     'uid': 'seed',
-                                    'fs': extra_info['item']['fs'],
-                                    'ts': extra_info['item']['ts'],
-                                    'f': extra_info['item']['f'],
-                                    't': extra_info['item']['t'],
-                                    'go_date': extra_info['item']['go_date'],
+                                    'fs': extra_info['fs'],
+                                    'ts': extra_info['ts'],
+                                    'f': extra_info['f'],
+                                    't': extra_info['t'],
+                                    'go_date': extra_info['go_date'],
                                     'time_segment': time_segment,
                                 },
+                                'dont_merge_cookies': True,
                             }
                         )
         else:
