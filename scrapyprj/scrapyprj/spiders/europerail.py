@@ -6,18 +6,24 @@ import sys
 import time
 import scrapy
 
-#  reload(sys)
-#  sys.setdefaultencoding('utf-8')
+# XXX: sys.getdefaultencoding == 'ascii'
+reload(sys)
+sys.setdefaultencoding('utf-8')
 
-DIRNAME = '{}/../log/'.format(os.path.dirname(__file__))
+DIRNAME = '{}/../'.format(os.path.dirname(__file__))
 
-file_ok = '{}/ok.txt'.format(DIRNAME)
-file_error = '{}/error.txt'.format(DIRNAME)
-file_failed = '{}/noline.txt'.format(DIRNAME)
+try:
+    os.mkdir('{}/log'.format(DIRNAME))
+    os.mkdir('{}/output'.format(DIRNAME))
+except OSError as e:
+    pass
+file_ok = '{}/log/ok.txt'.format(DIRNAME)
+file_error = '{}/log/error.txt'.format(DIRNAME)
+file_failed = '{}/log/noline.txt'.format(DIRNAME)
 file_pairs = '{}/pairs.txt'.format(DIRNAME)
 dir_output = '{}/output'.format(DIRNAME)
 # ,'2016-03-29','2016-03-30','2016-03-31','2016-04-01','2016-04-02','2016-04-03']
-go_date_list = ['2016-03-29']
+go_date_list = ['2016-03-31']
 # ['00:00,07:00','07:00,10:00','10:00,14:00','14:00,18:00','18:00,24:00']
 time_segments = ['01:00,23:00']
 allow_page_turning = False
@@ -129,9 +135,6 @@ class EuroperailSpider(scrapy.Spider):
 
     def __init__(self):
         super(EuroperailSpider, self).__init__()
-        #  self.fwfailed = open(file_failed, 'w')
-        #  self.fwerror = open(file_error, 'w')
-        #  self.fwok = open(file_ok, 'w')
         self.datasource = read_datasource(file_pairs)
 
     def start_requests(self):
@@ -142,11 +145,9 @@ class EuroperailSpider(scrapy.Spider):
             for fs, f, ts, t in self.datasource:
                 got_train = False
                 for time_segment in time_segments:
-                    #  line = '%s %s %s %s %s %s' % (fs,f,ts,t,go_date,time_segment)
-                    #  print '[%s] getting\t %s' % (get_time(), line)
                     url = 'http://www.europerail.cn/timetable/indexsearch_result.aspx?fs=%s&ts=%s&f=%s&t=%s&date=%s&time=%s&anum=1&ynum=0&cnum=0&snum=0&pass=false' % \
                         (fs, ts, f, t, go_date, time_segment)
-                    self.logger.debug('seed url: %s', url)
+                    self.logger.debug(u'seed url: %s', url)
 
                     i += 1
                     yield scrapy.Request(
@@ -187,7 +188,11 @@ class EuroperailSpider(scrapy.Spider):
         @returns requests 0 0
         @scrapes
         """
-        sid = response.xpath('//html').re("var sid='(.*?)'")
+        try:
+            sid = response.xpath('//html').re("var sid='(.*?)'")[0].encode('utf-8')
+        except Exception as e:
+            self.logger.error('%s', e)
+            raise e
         opentime = '%d' % (time.time() * 1000)
         extra_info = response.meta['item']
         url = 'http://www.europerail.cn/timetable/inc/PTPSearch.aspx?sid=%s&f=%s&t=%s&date=%s&time=%s&anum=1&ynum=0&cnum=0&snum=0&pass=false&_=%s' % \
@@ -199,6 +204,7 @@ class EuroperailSpider(scrapy.Spider):
                 extra_info['time_segment'],
                 opentime,
             )
+        self.logger.info(u'yield detail page: %s', url)
         yield scrapy.Request(
             url,
             callback=self.parse_detail,
@@ -241,9 +247,9 @@ class EuroperailSpider(scrapy.Spider):
             extra_info['go_date'],
             extra_info['time_segment'])
         if is_error(response.body):
-            log = '[%s] error\t %s %s' % (
+            self.logger.error(u'%s %s %s', 'ERROR', line, 'ferror')
+            log = '[%s] ERROR\t %s %s' % (
                 get_time(), line, 'ferror')
-            print log
             fwerror.write(log + '\n')  # report error
             fwerror.flush()
             # fire terminal alarm
@@ -251,11 +257,11 @@ class EuroperailSpider(scrapy.Spider):
 
             # 如果错误，则直接休息10~30 seconds
             stime = random.randint(10, 30)
-            print 'sleep %s seconds' % stime
+            self.logger.info(u'not sleeping %s seconds' % stime)
             #  time.sleep(stime)
 
             self.logger.info(
-                'yield request %s again!\a',
+                u'yield request %s again!\a',
                 extra_info['referer'])
             yield scrapy.Request(
                 extra_info['referer'],
@@ -286,8 +292,8 @@ class EuroperailSpider(scrapy.Spider):
                 dont_filter=True,
             )
         elif has_train(response.body):
-            log = '[%s] ok\t %s' % (get_time(), line)
-            print log
+            self.logger.info(u'%s %s', 'OK', line)
+            log = '[%s] OK\t %s' % (get_time(), line)
             fwok.write(log + '\n')  # report ok
             fwok.flush()
 
@@ -310,19 +316,19 @@ class EuroperailSpider(scrapy.Spider):
                 start_time_list = response.xpath(
                     "//table[@class='zy_guding_1']/tr/td[2]/span/text()").extract()
                 if not start_time_list:
-                    print 'failed to get start time list using xpath.'
+                    self.logger.error(u'failed to get start time list using xpath.')
                 else:
                     start_time_list.sort()
                     latest_start_time = start_time_list[-1]
                     # 如果当前最大时间在time_segment的开始时间之前，则break，无需翻页了，已经没有了，否则构造新的time_segment
                     if latest_start_time <= extra_info['time_segment'].split(',')[
                             0]:
-                        print '已经没有更晚的车次了！'
+                        self.logger.info(u'已经没有更晚的车次了！')
                     else:
                         time_segment = '%s,%s' % (
                             latest_start_time,
                             extra_info['time_segment'].split(',')[1])
-                        print '还有更晚车次，重新构造time_segment查询： %s' % time_segment
+                        self.logger.info(u'还有更晚车次，重新构造time_segment查询： %s' % time_segment)
 
                         url = 'http://www.europerail.cn/timetable/inc/PTPSearch.aspx?sid=%s&f=%s&t=%s&date=%s&time=%s&anum=1&ynum=0&cnum=0&snum=0&pass=false&_=%s' % \
                             (
@@ -363,7 +369,7 @@ class EuroperailSpider(scrapy.Spider):
                             }
                         )
         else:
-            log = '[%s] noline\t %s' % (get_time(), line)
-            print log
+            self.logger.info(u'%s %s', 'NOLINE', line)
+            log = '[%s] NOLINE\t %s' % (get_time(), line)
             fwfailed.write(log + '\n')  # report failed
             fwfailed.flush()
