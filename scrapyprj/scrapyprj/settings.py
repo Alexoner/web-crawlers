@@ -19,7 +19,7 @@ NEWSPIDER_MODULE = 'scrapyprj.spiders'
 #USER_AGENT = 'scrapyprj (+http://www.yourdomain.com)'
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
-CONCURRENT_REQUESTS=8
+CONCURRENT_REQUESTS=64
 
 # Configure a delay for requests for the same website (default: 0)
 # See http://scrapy.readthedocs.org/en/latest/topics/settings.html#download-delay
@@ -51,7 +51,6 @@ DOWNLOAD_DELAY=3
 # See http://scrapy.readthedocs.org/en/latest/topics/downloader-middleware.html
 DOWNLOADER_MIDDLEWARES = {
       'scrapyprj.middlewares.ProxyDownloaderMiddleware': 543,
-#    'scrapyprj.middlewares.MyCustomDownloaderMiddleware': 543,
 }
 
 # Enable or disable extensions
@@ -85,8 +84,13 @@ DOWNLOADER_MIDDLEWARES = {
 #HTTPCACHE_IGNORE_HTTP_CODES=[]
 #HTTPCACHE_STORAGE='scrapy.extensions.httpcache.FilesystemCacheStorage'
 
+RETRY_TIMES = 5
+DUPEFILTER_DEBUG = True
+
 import os
-import sys
+import time
 
 DIRNAME = os.path.dirname(__file__)
 PROXY_LIST = '{}/proxies.txt'.format(DIRNAME)
+
+LOG_FILE = '{}/log/{}-{}.log'.format(DIRNAME, BOT_NAME, time.strftime('%Y-%m-%d', time.localtime(time.time())))

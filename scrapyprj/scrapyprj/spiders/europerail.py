@@ -6,10 +6,10 @@ import sys
 import time
 import scrapy
 
-reload(sys)
-sys.setdefaultencoding('utf-8')
+#  reload(sys)
+#  sys.setdefaultencoding('utf-8')
 
-DIRNAME = '{}/..'.format(os.path.dirname(__file__))
+DIRNAME = '{}/../log/'.format(os.path.dirname(__file__))
 
 file_ok = '{}/ok.txt'.format(DIRNAME)
 file_error = '{}/error.txt'.format(DIRNAME)
@@ -17,7 +17,7 @@ file_failed = '{}/noline.txt'.format(DIRNAME)
 file_pairs = '{}/pairs.txt'.format(DIRNAME)
 dir_output = '{}/output'.format(DIRNAME)
 # ,'2016-03-29','2016-03-30','2016-03-31','2016-04-01','2016-04-02','2016-04-03']
-go_date_list = ['2016-03-28']
+go_date_list = ['2016-03-29']
 # ['00:00,07:00','07:00,10:00','10:00,14:00','14:00,18:00','18:00,24:00']
 time_segments = ['01:00,23:00']
 allow_page_turning = False
@@ -54,9 +54,10 @@ def read_already_got():
     already_got = set()
     already_got = already_got | set(dsok)
     already_got = already_got | set(dsnoline)
-    for e in dserror:
-        if e in already_got:
-            already_got.remove(e)
+    already_got = already_got - set(dserror)
+    #  for e in dserror:
+    #  if e in already_got:
+    #  already_got.remove(e)
 
     return already_got
 
@@ -112,9 +113,11 @@ def has_train(html):
 #----------------------------------------------------------------------
 def is_error(html):
     """
-        error page
+        error page when IP gets banned by server
     """
     return not html or html.find('ferror') >= 0
+
+RETRY_COOKIEJAR = 4030
 
 class EuroperailSpider(scrapy.Spider):
     handle_httpstatus_list = [400, 404, 502]
@@ -134,8 +137,9 @@ class EuroperailSpider(scrapy.Spider):
     def start_requests(self):
 
         i = 0
-        for fs, f, ts, t in self.datasource:
-            for go_date in go_date_list:
+        # date as the most significant bit, which we iterate over last
+        for go_date in go_date_list:
+            for fs, f, ts, t in self.datasource:
                 got_train = False
                 for time_segment in time_segments:
                     #  line = '%s %s %s %s %s %s' % (fs,f,ts,t,go_date,time_segment)
@@ -177,6 +181,12 @@ class EuroperailSpider(scrapy.Spider):
         pass
 
     def parse_seed(self, response):
+        """ Parse seed urls to generate sequential sub-requests
+        @url http://www.europerail.cn/timetable/indexsearch_result.aspx?fs=%E8%92%99%E5%BD%BC%E5%88%A9%E5%9F%83&ts=%E6%B3%A2%E8%8C%A8%E5%9D%A6&f=FRMPL&t=DEXXO&date=2016-03-29&time=01:00,23:00&anum=1&ynum=0&cnum=0&snum=0&pass=false
+        @returns items 0 16
+        @returns requests 0 0
+        @scrapes
+        """
         sid = response.xpath('//html').re("var sid='(.*?)'")
         opentime = '%d' % (time.time() * 1000)
         extra_info = response.meta['item']
@@ -213,10 +223,10 @@ class EuroperailSpider(scrapy.Spider):
                     't': extra_info['t'],
                     'go_date': extra_info['go_date'],
                     'time_segment': extra_info['time_segment'],
-                    'referer': url,
+                    'referer': response.url,
                 },
                 'dont_merge_cookies': False,
-                'cookiejar': response.meta['cookiejar'],
+                'cookiejar': response.meta.get('cookiejar'),
             }
         )
 
@@ -236,11 +246,17 @@ class EuroperailSpider(scrapy.Spider):
             print log
             fwerror.write(log + '\n')  # report error
             fwerror.flush()
+            # fire terminal alarm
+            print('\a')
 
-            # 如果错误，则直接休息10~30分钟
-            stime = random.randint(10, 30) * 60
+            # 如果错误，则直接休息10~30 seconds
+            stime = random.randint(10, 30)
             print 'sleep %s seconds' % stime
+            #  time.sleep(stime)
 
+            self.logger.info(
+                'yield request %s again!\a',
+                extra_info['referer'])
             yield scrapy.Request(
                 extra_info['referer'],
                 callback=self.parse_seed,
@@ -250,7 +266,7 @@ class EuroperailSpider(scrapy.Spider):
                     "Accept-Language": "zh-CN,zh;q=0.8,en;q=0.6,ja;q=0.4,es;q=0.2,pt;q=0.2,ru;q=0.2,zh-TW;q=0.2",
                     "Connection": "keep-alive",
                     "Host": "www.europerail.cn",
-                    "Referer": "http://www.europerail.cn/timetable/",
+                    "Referer": "http://www.europerail.cn/",
                     "Upgrade-Insecure-Requests": "1",
                     "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.87 Safari/537.36",
                 },
@@ -265,9 +281,10 @@ class EuroperailSpider(scrapy.Spider):
                         'time_segment': extra_info['time_segment'],
                     },
                     'dont_merge_cookies': True,
-                }
+                    'cookiejar': response.meta['cookiejar'] + RETRY_COOKIEJAR,
+                },
+                dont_filter=True,
             )
-            #  time.sleep(stime)
         elif has_train(response.body):
             log = '[%s] ok\t %s' % (get_time(), line)
             print log
@@ -307,10 +324,6 @@ class EuroperailSpider(scrapy.Spider):
                             extra_info['time_segment'].split(',')[1])
                         print '还有更晚车次，重新构造time_segment查询： %s' % time_segment
 
-                        # sleep for a while
-                        stime = get_sleeptime()
-                        print 'sleep %s seconds' % stime
-                        #  time.sleep(stime)
                         url = 'http://www.europerail.cn/timetable/inc/PTPSearch.aspx?sid=%s&f=%s&t=%s&date=%s&time=%s&anum=1&ynum=0&cnum=0&snum=0&pass=false&_=%s' % \
                             (
                                 extra_info['sid'],
@@ -329,22 +342,24 @@ class EuroperailSpider(scrapy.Spider):
                                 "Accept-Language": "zh-CN,zh;q=0.8,en;q=0.6,ja;q=0.4,es;q=0.2,pt;q=0.2,ru;q=0.2,zh-TW;q=0.2",
                                 "Connection": "keep-alive",
                                 "Host": "www.europerail.cn",
-                                "Referer": response.url,
+                                #  "Referer": response.url, # the referer middleware will do the job?
                                 "Upgrade-Insecure-Requests": "1",
                                 "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.87 Safari/537.36",
                                 "X-Requested-With": "XMLHttpRequest",
                             },
                             meta={
                                 'item': {
-                                    'uid': 'seed',
+                                    'uid': 'detail',
                                     'fs': extra_info['fs'],
                                     'ts': extra_info['ts'],
                                     'f': extra_info['f'],
                                     't': extra_info['t'],
                                     'go_date': extra_info['go_date'],
                                     'time_segment': time_segment,
+                                    'referer': response.url,
                                 },
                                 'dont_merge_cookies': True,
+                                'cookiejar': response.meta['cookiejar'],
                             }
                         )
         else:
