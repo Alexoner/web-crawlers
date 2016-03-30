@@ -7,9 +7,7 @@ import re
 import sys
 import time
 import itertools
-from lxml import html as html_parser
 import scrapy
-import ipdb
 
 #  from scrapy.loader import ItemLoader
 from scrapyprj.items import ScrapyprjItem
@@ -331,7 +329,6 @@ class EuroperailSpider(scrapy.Spider):
 
             try:
                 for item in self.generate_items(response):
-                    ipdb.set_trace()
                     yield item
             except Exception as e:
                 self.logger.error('error when generating items: %s' % e)
@@ -426,14 +423,6 @@ class EuroperailSpider(scrapy.Spider):
         seat_type_indexes = [5, 6]
         items = []
         for (i, k) in itertools.product(train_list_indexes, seat_type_indexes):
-            #  seat_list = response.xpath('//table[{0}]/tr/td[{1}]/table/tr/td/a/text()'.format(
-                #  (i + 1),
-                #  (k),
-            #  )).extract()
-            #  price_list = response.xpath('//table[{0}]/tr/td[{1}]/table/tr/td/strong/text()'.format(
-                #  (i + 1),
-                #  (k),
-            #  )).extract()
 
             seat_list = train_tables[i].xpath('./tr/td[{0}]/table/tr/td/a/text()'.format(
                 k
@@ -457,23 +446,14 @@ class EuroperailSpider(scrapy.Spider):
                 train_no = train_list[i]
                 item["train_no"] = train_no
                 # 发车站点
-                #  from_station = response.xpath('//table[{0}]/tr/td[2]/text()[2]'.format(
-                #  (i + 1),
-                #  )).extract()[i]
                 from_station = train_tables[i].xpath(
                     './tr/td[2]/text()[2]'.format()).extract()[0].replace(
                     r"\u00A0", "").strip()
                 item["from_station"] = from_station
                 item["from_city_code"] = extra_info['f']
                 # 发车时间
-                #  from_date = response.xpath('//table[{0}]/tr/td[2]/text()[1]'.format(
-                #  (i + 1),
-                #  )).extract()[i]
                 from_date = train_tables[i].xpath(
                     './tr/td[2]/text()[1]'.format()).extract()[0]
-                #  from_time = response.xpath('//table[{0}]/tr/td[@width="200"][1]/span/text()'.format(
-                #  (i + 1),
-                #  )).extract()[i]
                 from_time = train_tables[i].xpath(
                     './tr/td[@width="200"][1]/span/text()'.format()).extract()[0]
 
@@ -482,23 +462,14 @@ class EuroperailSpider(scrapy.Spider):
                 from_time = '%s %s:00' % (extra_info.get("date"), from_time)
                 item["from_time"] = from_time
                 #  到站站点
-                #  to_station = response.xpath("//table[{0}]/tr/td[@width='200'][2]/text()[2]".format(
-                #  (i + 1),
-                #  )).extract()[i]
                 to_station = train_tables[i].xpath("./tr/td[@width='200'][2]/text()[2]".format(
                 )).extract()[0].replace(r"\u00A0", "").strip()
                 item["to_station"] = to_station
                 item["to_city_code"] = extra_info['t']
                 #  到站时间
-                #  to_time = response.xpath("//table[{0}]/tr/td[@width='200'][2]/span/text()".format(
-                #  (i + 1),
-                #  )).extract()[i]
                 to_time = train_tables[i].xpath("./tr/td[@width='200'][2]/span/text()".format(
                 )).extract()[0]
                 to_year = year
-                #  to_date = response.xpath("//table[{0}]/tr/td[3]/text()[1]".format(
-                    #  (i + 1),
-                #  )).extract()[i]
                 to_date = train_tables[i].xpath("./tr/td[3]/text()[1]".format(
                 )).extract()[0]
                 if to_date < from_date:
@@ -516,22 +487,20 @@ class EuroperailSpider(scrapy.Spider):
                 item["price"] = price
                 # 座位等级
                 if (k == 5):
-                    seat_grade = "一等舱"
+                    seat_grade = "一等舱".encode('utf-8')
                 elif (k == 6):
-                    seat_grade = "二等舱"
+                    seat_grade = "二等舱".encode('utf-8')
                 item["seat_grade"] = seat_grade
                 seat_type = seat_list[j]
-                item["seat_type"] = seat_type
+                item["seat_type"] = seat_type.encode('utf-8')
                 transfer_flag = train_tables[i].xpath(
                     './tr/td[4]/a/@href'.format()).extract()
-                # transfer_flag =
-                # response.xpath('//table[3]/tbody/tr/td[@width="180"][1]/a/@href').extract()
                 if transfer_flag:
                     try:
                         transfer_items = self.extract_transfer_trains(
                             response, transfer_flag)
                         if transfer_items:
-                            train_no = '%s,%s' % (l.get_value('train_no'),
+                            train_no = '%s,%s' % (item['train_no'],
                                                   ','.join(map(lambda x: x['train_no'], transfer_items)))
                             item["train_no"] = '%s,%s' % (
                                 l.get_value("train_no"), train_no_transfer)
@@ -542,7 +511,6 @@ class EuroperailSpider(scrapy.Spider):
 
     def extract_transfer_trains(self, response, transfer_flag):
         # search for pattern!
-        ipdb.set_trace()
         match = re.search(
             r"javascript:showDivInfo\('(travelchange\S+)'\);",
             transfer_flag[0])
@@ -551,7 +519,7 @@ class EuroperailSpider(scrapy.Spider):
         else:
             return
 
-        transfer_list = response.xpath("//div[@id='{0}']/table[@class='zy_search_hc2']/tr/td[@width='108'][@align='center']/strong".format(
+        transfer_list = response.xpath("//div[@id='{0}']/table[@class='zy_search_hc2']/tr/td[@width='108'][@align='center']/strong/text()".format(
             transfer_id,
         )).extract()
         transfer_items = []
@@ -572,7 +540,7 @@ class EuroperailSpider(scrapy.Spider):
             transfer_item["from_time"] = from_time_transfer
             # 出发站点
             start_station_transfer = response.xpath(
-                "//div[@id='{0}']/table[{1}]/tr/td[@width='180'][1][@align='center']/strong[1]".format(
+                "//div[@id='{0}']/table[{1}]/tr/td[@width='180'][1][@align='center']/strong[1/text()]".format(
                     transfer_id,
                     (2 * transfer_index + 2),
                 )).extract()[0]
@@ -586,12 +554,11 @@ class EuroperailSpider(scrapy.Spider):
             transfer_item["to_time"] = to_time_transfer.replace(
                 r"\u00A0", "").strip()
             # 到站站点
-            to_station_transfer = response.xpath("//div[@id='{0}']/table[{1}]/tr/td[@width='180'][2][@align='center']/strong[1]".format(
+            to_station_transfer = response.xpath("//div[@id='{0}']/table[{1}]/tr/td[@width='180'][2][@align='center']/strong[1]/text()".format(
                 transfer_id,
                 (2 * transfer_index + 2),
             )).extract()[0]
-            transfer_item[
-                "to_station"] = to_station_transfer
+            transfer_item["to_station"] = to_station_transfer
             transfer_item["adults"] = 1
             transfer_item["children"] = 0
             transfer_item["seniors"] = 0
