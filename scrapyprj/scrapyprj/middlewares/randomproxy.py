@@ -20,7 +20,7 @@ class ProxyDownloaderMiddleware(object):
             # extract proxy address using regular expression
             match = re.match(self.proxy_pattern, line)
 
-            if len(match.groups()) == 0:
+            if not match:
                 continue
 
             # key: proxy address in format http://domain.com:port/
@@ -34,6 +34,8 @@ class ProxyDownloaderMiddleware(object):
 
             self.proxies[match.group(1) + match.group(3)] = user_pass
 
+        logger.debug('loaded %d proxies', len(self.proxies))
+
         fin.close()
 
     @classmethod
@@ -46,10 +48,11 @@ class ProxyDownloaderMiddleware(object):
         # state for IP)
         if request.meta.get('proxy') and re.match(
                 self.proxy_pattern, request.meta.get('proxy')):
-            return
-
-        proxy_address = random.choice(self.proxies.keys())
-        proxy_user_pass = self.proxies[proxy_address]
+            # use the same proxy for subsequent requests
+            proxy_address = request.meta.get('proxy')
+        else:
+            proxy_address = random.choice(self.proxies.keys())
+        proxy_user_pass = self.proxies.get(proxy_address)
 
         request.meta['proxy'] = proxy_address
         logger.debug('proxy: %s', proxy_address)
@@ -59,8 +62,8 @@ class ProxyDownloaderMiddleware(object):
 
     def process_exception(self, request, exception, spider):
         proxy = request.meta['proxy']
-        #  logger.debug('Removing failed proxy <%s>, %d proxies left' % (
-        #  proxy, len(self.proxies)))
+        logger.debug('Failed proxy <%s>, %d proxies left' % (
+        proxy, len(self.proxies)))
         try:
             if proxy in self.proxies:
                 # don't delete
