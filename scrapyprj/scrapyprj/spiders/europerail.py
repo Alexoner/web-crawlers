@@ -2,9 +2,17 @@
 
 import os
 import random
+import json
+import re
 import sys
 import time
+import itertools
+from lxml import html as html_parser
 import scrapy
+import ipdb
+
+#  from scrapy.loader import ItemLoader
+from scrapyprj.items import ScrapyprjItem
 
 # XXX: sys.getdefaultencoding == 'ascii'
 reload(sys)
@@ -22,11 +30,15 @@ file_error = '{}/log/error.txt'.format(DIRNAME)
 file_failed = '{}/log/noline.txt'.format(DIRNAME)
 file_pairs = '{}/pairs.txt'.format(DIRNAME)
 dir_output = '{}/output'.format(DIRNAME)
-# ,'2016-03-29','2016-03-30','2016-03-31','2016-04-01','2016-04-02','2016-04-03']
-go_date_list = ['2016-03-30']
+go_date_list = [
+    '2016-03-30',
+    '2016-04-01',
+    '2016-04-02',
+    '2016-04-03',
+    '2016-04-04']
 # ['00:00,07:00','07:00,10:00','10:00,14:00','14:00,18:00','18:00,24:00']
 time_segments = ['01:00,23:00']
-allow_page_turning = False
+allow_page_turning = True
 
 fwfailed = open(file_failed, 'a')
 fwerror = open(file_error, 'a')
@@ -104,13 +116,15 @@ def read_datasource(filename):
             pair = (fs, f, ts, t,)
             pairs.append(pair)
 
-    for date in go_date_list:
+    print('loaded pairs: %d' % len(pairs))
+
+    for go_date in go_date_list:
         for time_segment in time_segments:
             for pair in pairs:
-                ds = pair + (date, time_segment,)
+                ds = pair + (go_date, time_segment,)
                 if ds not in already_got:
                     datasource.append(ds)
-    print 'done, datasource num = %d' % len(datasource)
+    print 'filtered duplicate ones, datasource num = %d' % len(datasource)
     return datasource
 
 #----------------------------------------------------------------------
@@ -149,7 +163,6 @@ class EuroperailSpider(scrapy.Spider):
         i = 0
         # date as the most significant bit, which we iterate over last
         for fs, f, ts, t, date, time_segment in self.datasource:
-            got_train = False
             url = 'http://www.europerail.cn/timetable/indexsearch_result.aspx?fs=%s&ts=%s&f=%s&t=%s&date=%s&time=%s&anum=1&ynum=0&cnum=0&snum=0&pass=false' % \
                 (fs, ts, f, t, date, time_segment)
             self.logger.debug(u'seed url: %s', url)
@@ -175,7 +188,7 @@ class EuroperailSpider(scrapy.Spider):
                         'ts': ts,
                         'f': f,
                         't': t,
-                        'go_date': date,
+                        'date': date,
                         'time_segment': time_segment,
                     },
                     'dont_merge_cookies': True,
@@ -198,7 +211,7 @@ class EuroperailSpider(scrapy.Spider):
                 '//html').re("var sid='(.*?)'")[0].encode('utf-8')
         except Exception as e:
             self.logger.error('%s', e)
-            raise e
+            return
         opentime = '%d' % (time.time() * 1000)
         extra_info = response.meta['item']
         url = 'http://www.europerail.cn/timetable/inc/PTPSearch.aspx?sid=%s&f=%s&t=%s&date=%s&time=%s&anum=1&ynum=0&cnum=0&snum=0&pass=false&_=%s' % \
@@ -206,7 +219,7 @@ class EuroperailSpider(scrapy.Spider):
                 sid,
                 extra_info['f'],
                 extra_info['t'],
-                extra_info['go_date'],
+                extra_info['date'],
                 extra_info['time_segment'],
                 opentime,
             )
@@ -233,7 +246,7 @@ class EuroperailSpider(scrapy.Spider):
                     'ts': extra_info['ts'],
                     'f': extra_info['f'],
                     't': extra_info['t'],
-                    'go_date': extra_info['go_date'],
+                    'date': extra_info['date'],
                     'time_segment': extra_info['time_segment'],
                     'referer': response.url,
                 },
@@ -251,7 +264,7 @@ class EuroperailSpider(scrapy.Spider):
             extra_info['f'],
             extra_info['ts'],
             extra_info['t'],
-            extra_info['go_date'],
+            extra_info['date'],
             extra_info['time_segment'])
         if is_error(response.body):
             self.logger.error(u'%s %s %s', 'ERROR', line, 'ferror')
@@ -290,7 +303,7 @@ class EuroperailSpider(scrapy.Spider):
                         'ts': extra_info['ts'],
                         'f': extra_info['f'],
                         't': extra_info['t'],
-                        'go_date': extra_info['go_date'],
+                        'date': extra_info['date'],
                         'time_segment': extra_info['time_segment'],
                     },
                     'dont_merge_cookies': True,
@@ -304,19 +317,24 @@ class EuroperailSpider(scrapy.Spider):
             fwok.write(log + '\n')  # report ok
             fwok.flush()
 
-            got_train = True
-
             outputfile = os.path.join(
                 dir_output, '%s_%s_%s_%s_%s.html' % (
                     extra_info['f'],
                     extra_info['t'],
-                    extra_info['go_date'],
+                    extra_info['date'],
                     extra_info['time_segment'].split(',')[0].replace(':', ''),
                     extra_info['time_segment'].split(',')[1].replace(':', ''))
             )
             fw = open(outputfile, 'w')
             fw.write(response.body)
             fw.close()
+
+            try:
+                for item in self.generate_items(response):
+                    ipdb.set_trace()
+                    yield item
+            except Exception as e:
+                self.logger.error('error when generating items: %s' % e)
 
             if allow_page_turning:
                 ## 下面开始翻页逻辑 ##
@@ -334,19 +352,27 @@ class EuroperailSpider(scrapy.Spider):
                             0]:
                         self.logger.info(u'已经没有更晚的车次了！')
                     else:
+                        latest_hour, latest_minute = latest_start_time.split(
+                            ':')
+                        # ceil time at 30 minutes or 0 minutes
+                        next_start_time = '{}:{}'.format(latest_minute <= '30' and latest_hour or int(latest_hour) + 1,
+                                                         latest_minute <= '30' and '30' or '00')
                         time_segment = '%s,%s' % (
-                            latest_start_time,
+                            next_start_time,
                             extra_info['time_segment'].split(',')[1])
                         self.logger.info(
                             u'还有更晚车次，重新构造time_segment查询： %s' %
                             time_segment)
 
-                        url = 'http://www.europerail.cn/timetable/inc/PTPSearch.aspx?sid=%s&f=%s&t=%s&date=%s&time=%s&anum=1&ynum=0&cnum=0&snum=0&pass=false&_=%s' % \
+                        ssnum = extra_info.get('ssnum') and extra_info[
+                            'ssnum'] + 1 or 1
+                        url = 'http://www.europerail.cn/timetable/inc/PTPSearch.aspx?ssnum=%s&stype=down&sid=%s&f=%s&t=%s&date=%s&time=%s&anum=1&ynum=0&cnum=0&snum=0&pass=false&_=%s' % \
                             (
+                                ssnum,
                                 extra_info['sid'],
                                 extra_info['f'],
                                 extra_info['t'],
-                                extra_info['go_date'],
+                                extra_info['date'],
                                 time_segment,
                                 '%d' % (time.time() * 1000),
                             )
@@ -371,8 +397,10 @@ class EuroperailSpider(scrapy.Spider):
                                     'ts': extra_info['ts'],
                                     'f': extra_info['f'],
                                     't': extra_info['t'],
-                                    'go_date': extra_info['go_date'],
+                                    'date': extra_info['date'],
                                     'time_segment': time_segment,
+                                    'ssnum': ssnum,
+                                    'sid': extra_info['sid'],
                                     'referer': response.url,
                                 },
                                 'dont_merge_cookies': True,
@@ -385,3 +413,192 @@ class EuroperailSpider(scrapy.Spider):
             log = '[%s] NOLINE\t %s' % (get_time(), line)
             fwfailed.write(log + '\n')  # report failed
             fwfailed.flush()
+
+    def generate_items(self, response):
+        extra_info = response.meta['item']
+        # the returned html is malformed(without root like <html><body> and so on),
+        # XPATH may fail
+        train_tables = response.xpath('//table[@width="1157"]')
+        #  [3].xpath('./tr/td[4]/a').extract()[0]
+        train_list = response.xpath(
+            '//td[@width="131"]/strong/text()').extract()
+        train_list_indexes = range(len(train_list))
+        seat_type_indexes = [5, 6]
+        items = []
+        for (i, k) in itertools.product(train_list_indexes, seat_type_indexes):
+            #  seat_list = response.xpath('//table[{0}]/tr/td[{1}]/table/tr/td/a/text()'.format(
+                #  (i + 1),
+                #  (k),
+            #  )).extract()
+            #  price_list = response.xpath('//table[{0}]/tr/td[{1}]/table/tr/td/strong/text()'.format(
+                #  (i + 1),
+                #  (k),
+            #  )).extract()
+
+            seat_list = train_tables[i].xpath('./tr/td[{0}]/table/tr/td/a/text()'.format(
+                k
+            )).extract()
+
+            price_list = train_tables[i].xpath('./tr/td[{0}]/table/tr/td/strong/text()'.format(
+                k
+            )).extract()
+
+            for j, seat in enumerate(seat_list):
+                item = {}
+                item['adults'] = 1
+                item['children'] = 0
+                item['seniors'] = 0
+                item['youth'] = 0
+                item["departure_date"] = extra_info['date']
+                item["start_city_name"] = extra_info['fs']
+                item["dest_city_name"] = extra_info['ts']
+                item["site"] = "www.europerail.cn"
+                # 火车车次
+                train_no = train_list[i]
+                item["train_no"] = train_no
+                # 发车站点
+                #  from_station = response.xpath('//table[{0}]/tr/td[2]/text()[2]'.format(
+                #  (i + 1),
+                #  )).extract()[i]
+                from_station = train_tables[i].xpath(
+                    './tr/td[2]/text()[2]'.format()).extract()[0].replace(
+                    r"\u00A0", "").strip()
+                item["from_station"] = from_station
+                item["from_city_code"] = extra_info['f']
+                # 发车时间
+                #  from_date = response.xpath('//table[{0}]/tr/td[2]/text()[1]'.format(
+                #  (i + 1),
+                #  )).extract()[i]
+                from_date = train_tables[i].xpath(
+                    './tr/td[2]/text()[1]'.format()).extract()[0]
+                #  from_time = response.xpath('//table[{0}]/tr/td[@width="200"][1]/span/text()'.format(
+                #  (i + 1),
+                #  )).extract()[i]
+                from_time = train_tables[i].xpath(
+                    './tr/td[@width="200"][1]/span/text()'.format()).extract()[0]
+
+                # 2016-
+                year = extra_info.get("date")[0:5]
+                from_time = '%s %s:00' % (extra_info.get("date"), from_time)
+                item["from_time"] = from_time
+                #  到站站点
+                #  to_station = response.xpath("//table[{0}]/tr/td[@width='200'][2]/text()[2]".format(
+                #  (i + 1),
+                #  )).extract()[i]
+                to_station = train_tables[i].xpath("./tr/td[@width='200'][2]/text()[2]".format(
+                )).extract()[0].replace(r"\u00A0", "").strip()
+                item["to_station"] = to_station
+                item["to_city_code"] = extra_info['t']
+                #  到站时间
+                #  to_time = response.xpath("//table[{0}]/tr/td[@width='200'][2]/span/text()".format(
+                #  (i + 1),
+                #  )).extract()[i]
+                to_time = train_tables[i].xpath("./tr/td[@width='200'][2]/span/text()".format(
+                )).extract()[0]
+                to_year = year
+                #  to_date = response.xpath("//table[{0}]/tr/td[3]/text()[1]".format(
+                    #  (i + 1),
+                #  )).extract()[i]
+                to_date = train_tables[i].xpath("./tr/td[3]/text()[1]".format(
+                )).extract()[0]
+                if to_date < from_date:
+                    #  XXX:
+                    #  HAPPY NEW YEAR!
+                    to_year = "%s" % (int(year) + 1)
+                    item[
+                        "to_time"] = '%s-%s %s:00' % (to_year, to_date, to_time)
+                # 用时
+                spend_time = train_tables[i].xpath("./tr/td[@width='180'][1]/span/text()".format(
+                )).extract()[0]
+                item["time_length"] = spend_time
+                # 价格
+                price = price_list[j]
+                item["price"] = price
+                # 座位等级
+                if (k == 5):
+                    seat_grade = "一等舱"
+                elif (k == 6):
+                    seat_grade = "二等舱"
+                item["seat_grade"] = seat_grade
+                seat_type = seat_list[j]
+                item["seat_type"] = seat_type
+                transfer_flag = train_tables[i].xpath(
+                    './tr/td[4]/a/@href'.format()).extract()
+                # transfer_flag =
+                # response.xpath('//table[3]/tbody/tr/td[@width="180"][1]/a/@href').extract()
+                if transfer_flag:
+                    try:
+                        transfer_items = self.extract_transfer_trains(
+                            response, transfer_flag)
+                        if transfer_items:
+                            train_no = '%s,%s' % (l.get_value('train_no'),
+                                                  ','.join(map(lambda x: x['train_no'], transfer_items)))
+                            item["train_no"] = '%s,%s' % (
+                                l.get_value("train_no"), train_no_transfer)
+                            item['segs'] = json.dumps(transfer_items)
+                    except Exception as e:
+                        self.logger.error('parse transfer train error: %s', e)
+                yield ScrapyprjItem(item)
+
+    def extract_transfer_trains(self, response, transfer_flag):
+        # search for pattern!
+        ipdb.set_trace()
+        match = re.search(
+            r"javascript:showDivInfo\('(travelchange\S+)'\);",
+            transfer_flag[0])
+        if match:
+            transfer_id = match.group(1)
+        else:
+            return
+
+        transfer_list = response.xpath("//div[@id='{0}']/table[@class='zy_search_hc2']/tr/td[@width='108'][@align='center']/strong".format(
+            transfer_id,
+        )).extract()
+        transfer_items = []
+        if transfer_list:
+            self.logger.info('%d transfer trains(中转车)', len(transfer_list))
+        for transfer_index, transfer_train in enumerate(
+                transfer_list):
+            transfer_item = {}
+            # 车次
+            train_no_transfer = transfer_list[transfer_index]
+            transfer_item["train_no"] = train_no_transfer
+            #  出发时间
+            from_time_transfer = response.xpath(
+                "//div[@id='{0}']/table[{1}]/tr/td[@width='180'][1][@align='center']/span/text()".format(
+                    transfer_id,
+                    (2 * transfer_index + 2))
+            ).extract()[0]
+            transfer_item["from_time"] = from_time_transfer
+            # 出发站点
+            start_station_transfer = response.xpath(
+                "//div[@id='{0}']/table[{1}]/tr/td[@width='180'][1][@align='center']/strong[1]".format(
+                    transfer_id,
+                    (2 * transfer_index + 2),
+                )).extract()[0]
+            transfer_item["from_station"] = start_station_transfer.replace(
+                u"\u00A0", "").strip()
+            # 到达时间
+            to_time_transfer = response.xpath("//div[@id='{0}']/table[{1}]/tr/td[@width='180'][2][@align='center']/span/text()".format(
+                transfer_id,
+                (2 * transfer_index + 2),
+            )).extract()[0]
+            transfer_item["to_time"] = to_time_transfer.replace(
+                r"\u00A0", "").strip()
+            # 到站站点
+            to_station_transfer = response.xpath("//div[@id='{0}']/table[{1}]/tr/td[@width='180'][2][@align='center']/strong[1]".format(
+                transfer_id,
+                (2 * transfer_index + 2),
+            )).extract()[0]
+            transfer_item[
+                "to_station"] = to_station_transfer
+            transfer_item["adults"] = 1
+            transfer_item["children"] = 0
+            transfer_item["seniors"] = 0
+            transfer_item["youth"] = 0
+            transfer_item["departure_date"] = response.meta['item']['date']
+            transfer_item["start_city_name"] = response.meta['item']['fs']
+            transfer_item["dest_city_name"] = response.meta['item']['ts']
+            transfer_items.append(transfer_item)
+
+        return transfer_items
