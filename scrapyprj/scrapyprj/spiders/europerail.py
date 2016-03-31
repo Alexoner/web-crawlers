@@ -29,7 +29,7 @@ file_failed = '{}/log/noline.txt'.format(DIRNAME)
 file_pairs = '{}/pairs.txt'.format(DIRNAME)
 dir_output = '{}/output'.format(DIRNAME)
 go_date_list = [
-    '2016-03-30',
+    #  '2016-03-30',
     '2016-04-01',
     '2016-04-02',
     '2016-04-03',
@@ -487,12 +487,12 @@ class EuroperailSpider(scrapy.Spider):
                 item["price"] = price
                 # 座位等级
                 if (k == 5):
-                    seat_grade = "一等舱".encode('utf-8')
+                    seat_grade = "一等舱"
                 elif (k == 6):
-                    seat_grade = "二等舱".encode('utf-8')
+                    seat_grade = "二等舱"
                 item["seat_grade"] = seat_grade
                 seat_type = seat_list[j]
-                item["seat_type"] = seat_type.encode('utf-8')
+                item["seat_type"] = seat_type
                 transfer_flag = train_tables[i].xpath(
                     './tr/td[4]/a/@href'.format()).extract()
                 if transfer_flag:
@@ -502,9 +502,8 @@ class EuroperailSpider(scrapy.Spider):
                         if transfer_items:
                             train_no = '%s,%s' % (item['train_no'],
                                                   ','.join(map(lambda x: x['train_no'], transfer_items)))
-                            item["train_no"] = '%s,%s' % (
-                                l.get_value("train_no"), train_no_transfer)
-                            item['segs'] = json.dumps(transfer_items)
+                            item["train_no"] = train_no
+                            item['segs'] = json.dumps(transfer_items, ensure_ascii=False)
                     except Exception as e:
                         self.logger.error('parse transfer train error: %s', e)
                 yield ScrapyprjItem(item)
@@ -540,7 +539,7 @@ class EuroperailSpider(scrapy.Spider):
             transfer_item["from_time"] = from_time_transfer
             # 出发站点
             start_station_transfer = response.xpath(
-                "//div[@id='{0}']/table[{1}]/tr/td[@width='180'][1][@align='center']/strong[1/text()]".format(
+                "//div[@id='{0}']/table[{1}]/tr/td[@width='180'][1][@align='center']/strong[1]/text()".format(
                     transfer_id,
                     (2 * transfer_index + 2),
                 )).extract()[0]
