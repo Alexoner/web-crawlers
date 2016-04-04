@@ -27,7 +27,7 @@ CONCURRENT_REQUESTS=128
 DOWNLOAD_DELAY=2
 # The download delay setting will honor only one of:
 #CONCURRENT_REQUESTS_PER_DOMAIN=16
-CONCURRENT_REQUESTS_PER_IP=32
+CONCURRENT_REQUESTS_PER_IP=64
 
 # Disable cookies (enabled by default)
 #COOKIES_ENABLED=False
@@ -50,7 +50,10 @@ CONCURRENT_REQUESTS_PER_IP=32
 # Enable or disable downloader middlewares
 # See http://scrapy.readthedocs.org/en/latest/topics/downloader-middleware.html
 DOWNLOADER_MIDDLEWARES = {
+    #  'scrapy.downloadermiddlewares.useragent.UserAgentMiddleware': None,
+    #  'scrapy_fake_useragent.middleware.RandomUserAgentMiddleware': 400,
     'scrapyprj.middlewares.ProxyDownloaderMiddleware': 543,
+    'scrapyprj.middlewares.fakeproxy.FakeProxyMiddleware': 544,
 }
 
 # Enable or disable extensions
