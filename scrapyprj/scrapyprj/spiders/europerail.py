@@ -16,7 +16,8 @@ from scrapyprj.items import ScrapyprjItem
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
-DIRNAME = '{}/../'.format(os.path.dirname(__file__))
+#  DIRNAME = '{}/..'.format(os.path.dirname(__file__))
+DIRNAME = '{}/work/getter'.format(os.path.expanduser('~'), time.time())
 
 try:
     os.mkdir('{}/log'.format(DIRNAME))
@@ -30,17 +31,41 @@ file_pairs = '{}/pairs.txt'.format(DIRNAME)
 dir_output = '{}/output'.format(DIRNAME)
 go_date_list = [
     #  '2016-03-30',
-    '2016-04-01',
-    '2016-04-02',
-    '2016-04-03',
-    '2016-04-04']
+    #  '2016-04-01',
+    #  '2016-04-02',
+    #  '2016-04-03',
+    #  '2016-04-04',
+    #  '2016-04-05',
+    #  '2016-04-06',
+    #  '2016-04-07',
+    #  '2016-04-08',
+    #  '2016-04-09',
+    #  '2016-04-10',
+    '2016-06-11',
+    '2016-06-12',
+    '2016-06-13',
+    '2016-06-18',
+    '2016-06-19',
+    '2016-06-14',
+    '2016-06-15',
+    '2016-06-16',
+    '2016-06-17',
+    '2016-06-18',
+    '2016-06-19',
+    '2016-06-20',
+    '2016-06-21',
+    '2016-06-22',
+    '2016-06-23',
+    '2016-06-24',
+    '2016-06-25',
+]
 # ['00:00,07:00','07:00,10:00','10:00,14:00','14:00,18:00','18:00,24:00']
 time_segments = ['01:00,23:00']
 allow_page_turning = True
 
-fwfailed = open(file_failed, 'a')
-fwerror = open(file_error, 'a')
-fwok = open(file_ok, 'a')
+fwfailed = open(file_failed, 'a+')
+fwerror = open(file_error, 'a+')
+fwok = open(file_ok, 'a+')
 
 if not os.path.exists(dir_output):
     os.makedirs(dir_output)
@@ -152,8 +177,8 @@ class EuroperailSpider(scrapy.Spider):
     #  'http://www.www.europerail.cn/',
     #  )
 
-    def __init__(self):
-        super(EuroperailSpider, self).__init__()
+    def __init__(self, name=None, **kwargs):
+        super(EuroperailSpider, self).__init__(name, **kwargs)
         self.datasource = read_datasource(file_pairs)
 
     def start_requests(self):
@@ -222,20 +247,16 @@ class EuroperailSpider(scrapy.Spider):
                 opentime,
             )
         self.logger.info(u'yield detail page: %s', url)
+        headers = response.request.headers.copy()
+        headers['Referer'] = response.url,
+        meta = response.meta.copy()
+        meta['item']['sid'] = sid
+        meta['item']['uid'] = 'detail'
+        meta['item']['referer'] = response.url
         yield scrapy.Request(
             url,
             callback=self.parse_detail,
-            headers={
-                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-                "Accept-Encoding": "gzip, deflate, sdch",
-                "Accept-Language": "zh-CN,zh;q=0.8,en;q=0.6,ja;q=0.4,es;q=0.2,pt;q=0.2,ru;q=0.2,zh-TW;q=0.2",
-                "Connection": "keep-alive",
-                "Host": "www.europerail.cn",
-                "Referer": response.url,
-                "Upgrade-Insecure-Requests": "1",
-                "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.87 Safari/537.36",
-                "X-Requested-With": "XMLHttpRequest",
-            },
+            headers=headers,
             meta={
                 'item': {
                     'sid': sid,
@@ -265,7 +286,12 @@ class EuroperailSpider(scrapy.Spider):
             extra_info['date'],
             extra_info['time_segment'])
         if is_error(response.body):
-            self.logger.error(u'%s %s %s', 'ERROR', line, 'ferror')
+            self.logger.error(
+                u'%s %s %s with proxy: %s',
+                'ERROR',
+                line,
+                'ferror',
+                response.meta.get('proxy'))
             log = '[%s] ERROR\t %s %s' % (
                 get_time(), line, 'ferror')
             fwerror.write(log + '\n')  # report error
@@ -310,7 +336,6 @@ class EuroperailSpider(scrapy.Spider):
                 dont_filter=True,
             )
         elif has_train(response.body):
-            self.logger.info(u'%s %s', 'OK', line)
             log = '[%s] OK\t %s' % (get_time(), line)
             fwok.write(log + '\n')  # report ok
             fwok.flush()
@@ -332,6 +357,9 @@ class EuroperailSpider(scrapy.Spider):
                     yield item
             except Exception as e:
                 self.logger.error('error when generating items: %s' % e)
+
+            # print shorter message after longer one to read more easily
+            self.logger.info(u'%s %s', 'OK', line)
 
             if allow_page_turning:
                 ## 下面开始翻页逻辑 ##
@@ -405,7 +433,8 @@ class EuroperailSpider(scrapy.Spider):
                                 'proxy': response.request.meta.get('proxy'),
                             }
                         )
-        else:
+        elif not extra_info.get('ssnum'):
+            # no records got, and it's not next page request
             self.logger.info(u'%s %s', 'NOLINE', line)
             log = '[%s] NOLINE\t %s' % (get_time(), line)
             fwfailed.write(log + '\n')  # report failed
@@ -503,7 +532,7 @@ class EuroperailSpider(scrapy.Spider):
                             train_no = '%s,%s' % (item['train_no'],
                                                   ','.join(map(lambda x: x['train_no'], transfer_items)))
                             item["train_no"] = train_no
-                            item['segs'] = json.dumps(transfer_items, ensure_ascii=False)
+                            item['segs'] = transfer_items
                     except Exception as e:
                         self.logger.error('parse transfer train error: %s', e)
                 yield ScrapyprjItem(item)
@@ -531,12 +560,25 @@ class EuroperailSpider(scrapy.Spider):
             train_no_transfer = transfer_list[transfer_index]
             transfer_item["train_no"] = train_no_transfer
             #  出发时间
+            from_date_transfer = response.xpath(
+                '//*[@id="{0}"]/table[{1}]/tr/td[1]/strong[2]/text()'.format(
+                    transfer_id,
+                    (2 * transfer_index + 2))
+            ).extract()[0]
+
             from_time_transfer = response.xpath(
                 "//div[@id='{0}']/table[{1}]/tr/td[@width='180'][1][@align='center']/span/text()".format(
                     transfer_id,
                     (2 * transfer_index + 2))
             ).extract()[0]
-            transfer_item["from_time"] = from_time_transfer
+            year = response.meta['item']['date'][0:4]
+            from_year = from_date_transfer < response.meta['item']['date'] and \
+                "%s" % (int(year) + 1) or year
+            to_year = from_year
+            transfer_item["from_time"] = '%s-%s %s:00' % (
+                from_year,
+                from_date_transfer,
+                from_time_transfer)
             # 出发站点
             start_station_transfer = response.xpath(
                 "//div[@id='{0}']/table[{1}]/tr/td[@width='180'][1][@align='center']/strong[1]/text()".format(
@@ -546,12 +588,23 @@ class EuroperailSpider(scrapy.Spider):
             transfer_item["from_station"] = start_station_transfer.replace(
                 u"\u00A0", "").strip()
             # 到达时间
+            to_date_transfer = response.xpath(
+                '//*[@id="{0}"]/table[{1}]/tr/td[2]/strong[2]/text()'.format(
+                    transfer_id,
+                    (2 * transfer_index + 2))
+            ).extract()[0]
             to_time_transfer = response.xpath("//div[@id='{0}']/table[{1}]/tr/td[@width='180'][2][@align='center']/span/text()".format(
                 transfer_id,
                 (2 * transfer_index + 2),
             )).extract()[0]
-            transfer_item["to_time"] = to_time_transfer.replace(
-                r"\u00A0", "").strip()
+            to_year = from_date_transfer < response.meta['item']['date'] and \
+                    "%s" % (int(year) + 1) or year
+            transfer_item["to_time"] = '%s-%s %s:00' % (
+                to_year,
+                to_date_transfer,
+                to_time_transfer.replace(
+                    r"\u00A0", "").strip()
+            )
             # 到站站点
             to_station_transfer = response.xpath("//div[@id='{0}']/table[{1}]/tr/td[@width='180'][2][@align='center']/strong[1]/text()".format(
                 transfer_id,

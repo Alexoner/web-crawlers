@@ -19,15 +19,15 @@ NEWSPIDER_MODULE = 'scrapyprj.spiders'
 #USER_AGENT = 'scrapyprj (+http://www.yourdomain.com)'
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
-CONCURRENT_REQUESTS=128
+CONCURRENT_REQUESTS=512
 
 # Configure a delay for requests for the same website (default: 0)
 # See http://scrapy.readthedocs.org/en/latest/topics/settings.html#download-delay
 # See also autothrottle settings and docs
-DOWNLOAD_DELAY=2
+DOWNLOAD_DELAY=0.45
 # The download delay setting will honor only one of:
 #CONCURRENT_REQUESTS_PER_DOMAIN=16
-CONCURRENT_REQUESTS_PER_IP=64
+CONCURRENT_REQUESTS_PER_IP=128
 
 # Disable cookies (enabled by default)
 #COOKIES_ENABLED=False
@@ -64,9 +64,9 @@ DOWNLOADER_MIDDLEWARES = {
 
 # Configure item pipelines
 # See http://scrapy.readthedocs.org/en/latest/topics/item-pipeline.html
-#ITEM_PIPELINES = {
-#    'scrapyprj.pipelines.SomePipeline': 300,
-#}
+ITEM_PIPELINES = {
+  'scrapyprj.pipelines.JsonWithEncodingPipeline': 300,
+}
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See http://doc.scrapy.org/en/latest/topics/autothrottle.html
@@ -93,7 +93,17 @@ DUPEFILTER_DEBUG = True
 import os
 import time
 
-DIRNAME = os.path.dirname(__file__)
-PROXY_LIST = '{}/proxies.txt'.format(DIRNAME)
+#  DIRNAME = os.path.dirname(__file__)
+DIRNAME = '{}/work/getter/{}'.format(os.path.expanduser('~'), time.strftime('%Y-%m-%d', time.localtime()))
+try:
+    os.mkdir(DIRNAME)
+    os.mkdir('{}/log'.format(DIRNAME))
+    os.mkdir('{}/output'.format(DIRNAME))
+except Exception as e:
+    pass
+PROXY_LIST = '{}/proxies.getter.txt'.format(DIRNAME)
+PROXY_LIST_ANONYMOUS = '{}/proxies.tor.txt'.format(DIRNAME)
 
 LOG_FILE = '{}/log/{}-{}.log'.format(DIRNAME, BOT_NAME, time.strftime('%Y-%m-%d', time.localtime(time.time())))
+
+OUTPUT_FILE = '{}/output/output_utf8.json'.format(DIRNAME)
