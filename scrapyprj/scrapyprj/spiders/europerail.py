@@ -52,10 +52,6 @@ go_date_list = [
 # ['00:00,07:00','07:00,10:00','10:00,14:00','14:00,18:00','18:00,24:00']
 time_segments = ['01:00,23:00']
 allow_page_turning = True
-
-
-
-
 RETRY_COOKIEJAR = 4030
 
 class EuroperailSpider(scrapy.Spider):

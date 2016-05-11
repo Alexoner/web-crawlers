@@ -104,6 +104,6 @@ except Exception as e:
 PROXY_LIST = '{}/proxies.getter.txt'.format(DIRNAME)
 PROXY_LIST_ANONYMOUS = '{}/proxies.tor.txt'.format(DIRNAME)
 
-LOG_FILE = '{}/log/{}-{}.log'.format(DIRNAME, BOT_NAME, time.strftime('%Y-%m-%d', time.localtime(time.time())))
+#  LOG_FILE = '{}/log/{}-{}.log'.format(DIRNAME, BOT_NAME, time.strftime('%Y-%m-%d', time.localtime(time.time())))
 
 OUTPUT_FILE = '{}/output/output_utf8.json'.format(DIRNAME)
