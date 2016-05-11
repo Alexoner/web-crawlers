@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import scrapy
+import urlparse
 
 
 class SznewsSpider(scrapy.Spider):
@@ -14,20 +15,27 @@ class SznewsSpider(scrapy.Spider):
         super(SznewsSpider, self).__init__(name, **kwargs)
 
     def parse(self, response):
+
         article_titles = response.xpath(
-            '/html/body/div[8]/div[1]/div/h3/a/text()').extract()
+            '//div[@id="bd1lfimg"]/div/dl/dd/a')
         for i, article_title in enumerate(article_titles):
-            yield scrapy.Request(article_title,
-                                 callback=None,
-                                 headers={},
-                                 meta={
-                                     'item': {
-                                         'uid': 'detail',
-                                     },
-                                     'dont_merge_cookies': True,
-                                     'cookiejar': i,
-                                 })
+            self.logger.info('article: %s' %
+                             (article_title.xpath('./text()')[0].extract()))
+            yield scrapy.Request(
+                urlparse.urljoin(response.url,
+                                 article_title.xpath('./@href')[0].extract()),
+                callback=self.parse_detail,
+                headers={},
+                meta={
+                    'item': {
+                        'uid': 'detail',
+                    },
+                    'dont_merge_cookies': True,
+                    'cookiejar': i,
+                })
         pass
 
     def parse_detail(self, response):
+        with open('/tmp/a.html', 'w') as f:
+            f.write(response.body)
         pass
