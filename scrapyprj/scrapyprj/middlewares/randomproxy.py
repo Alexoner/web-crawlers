@@ -50,6 +50,8 @@ class ProxyDownloaderMiddleware(object):
     def process_request(self, request, spider):
         # Don't overwrite existing valid proxy with a random one (server-side
         # state for IP)
+        if not self.proxies:
+            return
         if request.meta.get('proxy') and re.match(
                 self.proxy_pattern, request.meta.get('proxy')):
             # use the same proxy for subsequent requests
@@ -65,7 +67,7 @@ class ProxyDownloaderMiddleware(object):
             request.headers['Proxy-Authorization'] = basic_auth
 
     def process_exception(self, request, exception, spider):
-        proxy = request.meta['proxy']
+        proxy = request.meta.get('proxy')
         logger.debug('Exception %s with failed proxy <%s>, %d proxies left' % (
             exception, proxy, len(self.proxies)))
         try:
