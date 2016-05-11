@@ -17,18 +17,8 @@ reload(sys)
 sys.setdefaultencoding('utf-8')
 
 #  DIRNAME = '{}/..'.format(os.path.dirname(__file__))
-DIRNAME = '{}/work/getter'.format(os.path.expanduser('~'), time.time())
+DIRNAME = '{}/work/getter/{}'.format(os.path.expanduser('~'), time.time())
 
-try:
-    os.mkdir('{}/log'.format(DIRNAME))
-    os.mkdir('{}/output'.format(DIRNAME))
-except OSError as e:
-    pass
-file_ok = '{}/log/ok.txt'.format(DIRNAME)
-file_error = '{}/log/error.txt'.format(DIRNAME)
-file_failed = '{}/log/noline.txt'.format(DIRNAME)
-file_pairs = '{}/pairs.txt'.format(DIRNAME)
-dir_output = '{}/output'.format(DIRNAME)
 go_date_list = [
     #  '2016-03-30',
     #  '2016-04-01',
@@ -63,109 +53,8 @@ go_date_list = [
 time_segments = ['01:00,23:00']
 allow_page_turning = True
 
-fwfailed = open(file_failed, 'a+')
-fwerror = open(file_error, 'a+')
-fwok = open(file_ok, 'a+')
 
-if not os.path.exists(dir_output):
-    os.makedirs(dir_output)
 
-#----------------------------------------------------------------------
-def read_log_file(filename):
-    datasource = []
-    if os.path.exists(filename):
-        lines = open(filename).readlines()
-        for line in lines:
-            line = line.strip()
-            if line and line.startswith('['):
-                pp = line.split()
-                fs, f, ts, t, date, time_segment = pp[3:9]
-                datasource.append((fs, f, ts, t, date, time_segment))
-    return datasource
-
-#----------------------------------------------------------------------
-def read_already_got():
-    """
-        read downloaded requests form log
-    """
-    dsok = read_log_file(file_ok)
-    dserror = read_log_file(file_error)
-    dsnoline = read_log_file(file_failed)
-
-    already_got = set()
-    already_got = already_got | set(dsok)
-    already_got = already_got | set(dsnoline)
-    # we are retrying failed requests, so there is no need to exclude
-    # error pages when resuming a task
-    #  already_got = already_got - set(dserror)
-
-    return already_got
-
-#----------------------------------------------------------------------
-def get_sleeptime():
-    """
-        random sleep
-    """
-    return random.randint(40, 100)
-
-#----------------------------------------------------------------------
-def get_time():
-    """
-        current time with format
-    """
-    return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-
-#----------------------------------------------------------------------
-def read_datasource(filename):
-    """
-        accumulate seed requests
-    """
-    print 'loading pairs alreay got ...'
-    already_got = read_already_got()
-    print 'loaded pairs already got, num = %d' % len(already_got)
-
-    print 'loading datasource ...'
-    # element is: (fs,f,ts,t, date, time_segment),
-    # example: fs=巴黎&ts=伦敦&f=FRPAR&t=GBLON&date=2016-03-31&time=01:00,23:00
-    datasource = []
-    pairs = []
-    lines = open(filename).readlines()
-    for line in lines:
-        line = line.strip()  # line format:  巴黎:FRPAR \t 伦敦:GBLON
-        if line:
-            pp = line.split('\t')
-            fs, f = pp[0].split(':')
-            ts, t = pp[1].split(':')
-            pair = (fs, f, ts, t,)
-            pairs.append(pair)
-
-    print('loaded pairs: %d' % len(pairs))
-
-    for go_date in go_date_list:
-        for time_segment in time_segments:
-            for pair in pairs:
-                ds = pair + (go_date, time_segment,)
-                if ds not in already_got:
-                    datasource.append(ds)
-    print 'filtered duplicate ones, datasource num = %d' % len(datasource)
-    return datasource
-
-#----------------------------------------------------------------------
-def has_train(html):
-    """
-        got data
-    """
-    if html.find('没有找到符合您搜索条件的车次') >= 0:
-        return False
-    else:
-        return True
-
-#----------------------------------------------------------------------
-def is_error(html):
-    """
-        error page when IP gets banned by server
-    """
-    return not html or html.find('ferror') >= 0
 
 RETRY_COOKIEJAR = 4030
 
@@ -179,7 +68,7 @@ class EuroperailSpider(scrapy.Spider):
 
     def __init__(self, name=None, **kwargs):
         super(EuroperailSpider, self).__init__(name, **kwargs)
-        self.datasource = read_datasource(file_pairs)
+        self.datasource = self.read_datasource()
 
     def start_requests(self):
 
@@ -285,7 +174,7 @@ class EuroperailSpider(scrapy.Spider):
             extra_info['t'],
             extra_info['date'],
             extra_info['time_segment'])
-        if is_error(response.body):
+        if self.is_error(response.body):
             self.logger.error(
                 u'%s %s %s with proxy: %s',
                 'ERROR',
@@ -293,9 +182,9 @@ class EuroperailSpider(scrapy.Spider):
                 'ferror',
                 response.meta.get('proxy'))
             log = '[%s] ERROR\t %s %s' % (
-                get_time(), line, 'ferror')
-            fwerror.write(log + '\n')  # report error
-            fwerror.flush()
+                self.get_time(), line, 'ferror')
+            self.fwerror.write(log + '\n')  # report error
+            self.fwerror.flush()
             # fire terminal alarm
             print('\a')
 
@@ -335,13 +224,13 @@ class EuroperailSpider(scrapy.Spider):
                 },
                 dont_filter=True,
             )
-        elif has_train(response.body):
-            log = '[%s] OK\t %s' % (get_time(), line)
-            fwok.write(log + '\n')  # report ok
-            fwok.flush()
+        elif self.has_train(response.body):
+            log = '[%s] OK\t %s' % (self.get_time(), line)
+            self.fwok.write(log + '\n')  # report ok
+            self.fwok.flush()
 
             outputfile = os.path.join(
-                dir_output, '%s_%s_%s_%s_%s.html' % (
+                self.dir_output, '%s_%s_%s_%s_%s.html' % (
                     extra_info['f'],
                     extra_info['t'],
                     extra_info['date'],
@@ -436,9 +325,9 @@ class EuroperailSpider(scrapy.Spider):
         elif not extra_info.get('ssnum'):
             # no records got, and it's not next page request
             self.logger.info(u'%s %s', 'NOLINE', line)
-            log = '[%s] NOLINE\t %s' % (get_time(), line)
-            fwfailed.write(log + '\n')  # report failed
-            fwfailed.flush()
+            log = '[%s] NOLINE\t %s' % (self.get_time(), line)
+            self.fwfailed.write(log + '\n')  # report failed
+            self.fwfailed.flush()
 
     def generate_items(self, response):
         extra_info = response.meta['item']
@@ -621,3 +510,125 @@ class EuroperailSpider(scrapy.Spider):
             transfer_items.append(transfer_item)
 
         return transfer_items
+
+
+    #----------------------------------------------------------------------
+    @classmethod
+    def read_log_file(cls, filename):
+        datasource = []
+        if os.path.exists(filename):
+            lines = open(filename).readlines()
+            for line in lines:
+                line = line.strip()
+                if line and line.startswith('['):
+                    pp = line.split()
+                    fs, f, ts, t, date, time_segment = pp[3:9]
+                    datasource.append((fs, f, ts, t, date, time_segment))
+        return datasource
+
+    #----------------------------------------------------------------------
+    @classmethod
+    def read_already_got(cls, file_ok, file_error, file_failed):
+        """
+            read downloaded requests form log
+        """
+        dsok = cls.read_log_file(file_ok)
+        dserror = cls.read_log_file(file_error)
+        dsnoline = cls.read_log_file(file_failed)
+
+        already_got = set()
+        already_got = already_got | set(dsok)
+        already_got = already_got | set(dsnoline)
+        # we are retrying failed requests, so there is no need to exclude
+        # error pages when resuming a task
+        #  already_got = already_got - set(dserror)
+
+        return already_got
+
+    #----------------------------------------------------------------------
+    @classmethod
+    def get_sleeptime(cls):
+        """
+            random sleep
+        """
+        return random.randint(40, 100)
+
+    #----------------------------------------------------------------------
+    @classmethod
+    def get_time(cls):
+        """
+            current time with format
+        """
+        return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+
+    #----------------------------------------------------------------------
+    def read_datasource(self):
+        """
+            accumulate seed requests
+        """
+        try:
+            os.mkdir('{}/log'.format(DIRNAME))
+            os.mkdir('{}/output'.format(DIRNAME))
+        except OSError as e:
+            pass
+        self.file_ok = '{}/log/ok.txt'.format(DIRNAME)
+        self.file_error = '{}/log/error.txt'.format(DIRNAME)
+        self.file_failed = '{}/log/noline.txt'.format(DIRNAME)
+        self.file_pairs = '{}/pairs.txt'.format(DIRNAME)
+        self.dir_output = '{}/output'.format(DIRNAME)
+
+        self.fwfailed = open(self.file_failed, 'a+')
+        self.fwerror = open(self.file_error, 'a+')
+        self.fwok = open(self.file_ok, 'a+')
+        print 'loading pairs alreay got ...'
+        self.already_got = self.read_already_got(self.file_ok, self.file_error, self.file_failed)
+        print 'loaded pairs already got, num = %d' % len(self.already_got)
+
+
+        if not os.path.exists(self.dir_output):
+            os.makedirs(self.dir_output)
+
+        print 'loading datasource ...'
+        # element is: (fs,f,ts,t, date, time_segment),
+        # example: fs=巴黎&ts=伦敦&f=FRPAR&t=GBLON&date=2016-03-31&time=01:00,23:00
+        datasource = []
+        pairs = []
+        lines = open(self.file_pairs).readlines()
+        for line in lines:
+            line = line.strip()  # line format:  巴黎:FRPAR \t 伦敦:GBLON
+            if line:
+                pp = line.split('\t')
+                fs, f = pp[0].split(':')
+                ts, t = pp[1].split(':')
+                pair = (fs, f, ts, t,)
+                pairs.append(pair)
+
+        print('loaded pairs: %d' % len(pairs))
+
+        for go_date in go_date_list:
+            for time_segment in time_segments:
+                for pair in pairs:
+                    ds = pair + (go_date, time_segment,)
+                    if ds not in self.already_got:
+                        datasource.append(ds)
+        print 'filtered duplicate ones, datasource num = %d' % len(datasource)
+        return datasource
+
+    #----------------------------------------------------------------------
+    @classmethod
+    def has_train(cls, html):
+        """
+            got data
+        """
+        if html.find('没有找到符合您搜索条件的车次') >= 0:
+            return False
+        else:
+            return True
+
+    #----------------------------------------------------------------------
+    @classmethod
+    def is_error(cls, html):
+        """
+            error page when IP gets banned by server
+        """
+        return not html or html.find('ferror') >= 0

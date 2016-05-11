@@ -12,9 +12,12 @@ import codecs
 class JsonWithEncodingPipeline(object):
 
     def __init__(self, settings):
-        self.output_file = settings.get('OUTPUT_FILE')
-        if self.output_file:
-            self.file = codecs.open(self.output_file, 'a+', encoding='utf-8')
+        self.output_file_name = settings.get('OUTPUT_FILE')
+        #  if self.output_file_name:
+            #  self.file = codecs.open(self.output_file_name, 'a+', encoding='utf-8')
+
+        # name: output_file dictionary
+        self.output_files = {}
 
     @classmethod
     def from_crawler(cls, crawler):
@@ -22,10 +25,15 @@ class JsonWithEncodingPipeline(object):
         return cls(settings)
 
     def process_item(self, item, spider):
-        if self.output_file:
+        if not self.output_files.get(spider.name):
+            self.output_files[spider.name] = codecs.open('%s.%s' % (self.output_file_name,spider.name))
+        output_file = self.output_files[spider.name]
+        if output_file:
             line = json.dumps(dict(item), ensure_ascii=False) + "\n"
-            self.file.write(line)
+            output_file.write(line)
             return item
 
     def spider_closed(self, spider):
-        self.file.close()
+        #  self.file.close()
+        for output_file in self.output_files.values():
+            output_file and output_file.close()
