@@ -13,9 +13,13 @@ class ProxyDownloaderMiddleware(object):
     def __init__(self, settings):
         self.proxy_list = settings.get('PROXY_LIST')
         self.proxy_pattern = r'^\s*(\w+://)(\S+:\S+@)?(\S+)(#.*)?'
-        fin = open(self.proxy_list)
-
         self.proxies = {}
+        try:
+            fin = open(self.proxy_list)
+        except Exception as e:
+            #  raise e
+            return
+
         for line in fin.readlines():
             # extract proxy address using regular expression
             match = re.match(self.proxy_pattern, line)
