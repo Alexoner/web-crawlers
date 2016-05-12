@@ -12,7 +12,7 @@ class SzhomeSpider(scrapy.Spider):
     allowed_domains = ["szhome.com", "news.szhome.com"]
     start_urls = (
         #  'http://www.szhome.com/',
-        'http://news.szhome.com/list/1030',
+        'http://news.szhome.com/list/1030/432',
     )
 
     def __init__(self, name=None, **kwargs):
@@ -63,7 +63,6 @@ class SzhomeSpider(scrapy.Spider):
         else:
             source_name = extract_after_colon_ch(safe_extract(
                 response.xpath('//*[@id="news_main"]/div[1]/div[1]/div/div[1]/span[2]/text()')), 1)
-
             keywords = extract_after_colon_ch(safe_extract(response.xpath(
                 '//*[@id="news_main"]/div[1]/div[1]/div/div[1]/span[1]/text()')), 1)
             author = extract_after_colon_ch(safe_extract(response.xpath(
@@ -71,12 +70,15 @@ class SzhomeSpider(scrapy.Spider):
             )), 2)
             pub_time = extract_after_colon_ch(safe_extract(response.xpath(
                 '//*[@id="news_main"]/div[1]/div[1]/div/div[2]/span[1]/text()')), 1)
+            click_count = extract_after_colon_ch(safe_extract(response.xpath(
+                '//*[@id="news_main"]/div[1]/div[1]/div/div[2]/span[2]')), 1)
 
             #  item = HouseNewsItem()
             item = {}
             item['url'] = [response.url]
             item['author'] = author
             item['crawl_time'] = time.time()
+            item['click_count'] = click_count
             item['release_time'] = pub_time
             item['title'] = article['title']
             item['summary'] = safe_extract(

@@ -21,4 +21,8 @@ extract_article.goose = Goose({'stopwords_class': StopWordsChinese})
 def extract_url(response, selector):
     return urlparse.urljoin(response.url, safe_extract(selector))
 
-extract_after_colon_ch = lambda uniObj, index: uniObj and str(uniObj).split('：')[index].strip()
+def extract_after_colon_ch(uniObj, index):
+    try:
+        return uniObj and str(uniObj).split('：')[index].strip()
+    except IndexError as e:
+        return None
