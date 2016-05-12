@@ -2,8 +2,9 @@
 import os
 import sys
 import scrapy
+import time
 from scrapyprj.items import HouseNewsItem
-from scrapyprj.utils import safe_extract, extract_article
+from scrapyprj.utils import safe_extract,extract_article
 
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -24,25 +25,26 @@ class HousenewsspiderSpider(scrapy.Spider):
     	seedUrlList = [
             #weixinyidu
     		{'url':'http://www.weixinyidu.com/a_958','name':'丁祖昱评楼市','source':'dzypls'},
-    		{'url':'http://www.weixinyidu.com/a_970','name':'真叫卢俊的地产观','source':'zhenjiaolujun'},
-    		{'url':'http://www.weixinyidu.com/a_2650','name':'地产八卦女','source':'dichanbaguanv'},
-    		{'url':'http://www.weixinyidu.com/a_87979','name':'上海楼典','source':'shanghailord'},
+    		# {'url':'http://www.weixinyidu.com/a_970','name':'真叫卢俊的地产观','source':'zhenjiaolujun'},
+    		# {'url':'http://www.weixinyidu.com/a_2650','name':'地产八卦女','source':'dichanbaguanv'},
+    		# {'url':'http://www.weixinyidu.com/a_87979','name':'上海楼典','source':'shanghailord'},
 
-            #aiweibang
-            {'url':'http://top.aiweibang.com/u/203962','name':'地产大哥','source':'dichandage'},
-            {'url':'http://top.aiweibang.com/u/10380','name':'深圳地产通','source':'shenzhendichantong'},
+      #       #aiweibang
+      #       {'url':'http://top.aiweibang.com/u/203962','name':'地产大哥','source':'dichandage'},
+      #       {'url':'http://top.aiweibang.com/u/10380','name':'深圳地产通','source':'shenzhendichantong'},
 
-            {'url':'http://toutiao.com/m6188273732/','name':'梵高先生','source':'Mrvangogh1989'},
+      #       {'url':'http://toutiao.com/m6188273732/','name':'梵高先生','source':'Mrvangogh1989'},
             
-            {'url':'http://www.taogonghao.com/wemedia/detail/1486.html','name':'房产头条','source':'jinrongtegong'}
+      #       {'url':'http://www.taogonghao.com/wemedia/detail/1486.html','name':'房产头条','source':'jinrongtegong'}
             
-            {'url':'http://www.wtoutiao.com/author/szlujz.html','name':'陆家嘴','source':'szlujz'}
+      #       {'url':'http://www.wtoutiao.com/author/szlujz.html','name':'陆家嘴','source':'szlujz'}
             
-            {'url':'http://www.vccoo.com/a/jg2w6','name':'地产大爆炸','source':'dichandabaozha'}
+      #       {'url':'http://www.vccoo.com/a/jg2w6','name':'地产大爆炸','source':'dichandabaozha'}
 
     	]
     	for seed in seedUrlList:
-    		yield scrapy.Request(seed['url'], callback=self.parse_seed,meta=seed)
+    		return scrapy.Request(seed['url'], callback=self.parse_seed,meta=seed)
+
        
 
     def parse_seed(self,response):
@@ -63,15 +65,15 @@ class HousenewsspiderSpider(scrapy.Spider):
                yield scrapy.Request(url,callback=self.parse_detail_aliweibang,meta = paramData)
 
         elif 'toutiao' in response.url:
-            articleList = response.xpath("//div[@class='pin']")
 
+            articleList = response.xpath("//div[@class='pin']")
             for article in articleList:
                 url = article.xpath("//h3/a/@href")
                 viewCount = article.xpath("/div[@class='pin-content']//tr/td[1]/text()")
                 commentCount = article.xpath("div[@class='pin-content']//tr/td[2]/text()")
                 paramData['viewCount'] = viewCount
                 paramData['commentCount'] = commentCount
-               yield scrapy.Request(url,callback=self.parse_detail_toutiao,meta = paramData)
+                yield scrapy.Request(url,callback=self.parse_detail_toutiao,meta = paramData)
 
         elif 'taogonghao' in response.url:
             urlList = response.xpath("//ul[@class='recent_article']//li/a/@href").extract()
@@ -100,7 +102,6 @@ class HousenewsspiderSpider(scrapy.Spider):
     	houseNews['author'] = paramData['name']
     	#标题
     	houseNews['title'] = response.xpath("//h1[@class='news_title']/text()").extract()[0]
-    	print houseNews['title']
     	#时间
     	houseNews['release_time'] = response.xpath("//span[@class='news_time']/text()").extract()[0]
     	#阅读量
@@ -109,6 +110,16 @@ class HousenewsspiderSpider(scrapy.Spider):
     	houseNews['thumb_count'] =response.xpath("//span[@class ='news_read_no']/text()").extract()[2]
     	#关键词，热词
     	houseNews['keywords'] = response.xpath("//a[@class='hot_txt']/text()").extract()
+        #爬取时间
+        houseNews.crawl_time = time.time()
+        article = extract_article(raw_html=response.body)
+
+        #文本内容
+        houseNews.content = article['cleaned_text']        
+        houseNews['keywords'] = houseNews['keywords']+ article['meta']['keywords']
+
+        #dom文本
+        houseNews.html_document = response.xpath("//div[@class = 'news_content']").extract()
     	yield houseNews
 
 
