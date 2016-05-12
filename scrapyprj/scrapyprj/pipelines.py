@@ -26,7 +26,7 @@ class JsonWithEncodingPipeline(object):
 
     def process_item(self, item, spider):
         if not self.output_files.get(spider.name):
-            self.output_files[spider.name] = codecs.open('%s.%s' % (self.output_file_name,spider.name))
+            self.output_files[spider.name] = codecs.open('%s.%s' % (spider.name, self.output_file_name), mode='a+', encoding='utf-8')
         output_file = self.output_files[spider.name]
         if output_file:
             line = json.dumps(dict(item), ensure_ascii=False) + "\n"
