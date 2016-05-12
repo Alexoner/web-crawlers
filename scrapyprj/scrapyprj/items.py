@@ -40,7 +40,7 @@ class HouseNewsItem(scrapy.Item):
     source_id = scrapy.Field()  #原来的ID
     title = scrapy.Field()  #标题
     release_time = scrapy.Field()  # 发行时间
-    source = scrapy.Field()  # 来源
+    source_name = scrapy.Field()  # 来源
     source_url = scrapy.Field()  #来源链接
     url = scrapy.Field()  # URL
     summary = scrapy.Field()  # 摘要

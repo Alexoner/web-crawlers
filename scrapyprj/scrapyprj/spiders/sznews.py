@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
-import scrapy
+import time
 import urlparse
+import scrapy
+
+from scrapyprj.items import HouseNewsItem
+from scrapyprj.utils import safe_extract, extract_article
 
 
 class SznewsSpider(scrapy.Spider):
@@ -17,7 +21,7 @@ class SznewsSpider(scrapy.Spider):
     def parse(self, response):
 
         article_titles = response.xpath(
-            '//div[@id="bd1lfimg"]/div/dl/dd/a')
+            '//div[@class="fl w660-news-index"]/div[@class="list-con"]/h3/a')
         for i, article_title in enumerate(article_titles):
             self.logger.info('article: %s' %
                              (article_title.xpath('./text()')[0].extract()))
@@ -36,7 +40,18 @@ class SznewsSpider(scrapy.Spider):
         pass
 
     def parse_detail(self, response):
+        # TODO: manybe consider goose or newspaper to deal with article extraction
         with open('/tmp/a.html', 'w') as f:
             f.write(response.body)
-        yield {'html': response.body}
+        yield HouseNewsItem({
+            #  'html_document': [safe_extract(response.xpath('//*[@id="PrintTxt"]'))],
+            'url': [response.url],
+            'title': safe_extract(response.xpath('//*[@id="PrintTxt"]/h2/text()')),
+            'crawl_time': time.time(),
+            'release_time': safe_extract(response.xpath('//*[@id="pubtime_baidu"]/text()')),
+            'summary': safe_extract(response.xpath('//p[@id="fzy"]/text()')),
+            #  'content': safe_extract(response.xpath('(//*[@id="PrintTxt"]/div[2]/p/font|//*[@id="PrintTxt"]/div[2]/p)/text()')),
+            'content': extract_article(raw_html=response.body)['cleaned_text'],
+            'source_name': safe_extract(response.xpath('//*[@id="source_baidu"]/text()')),
+        })
         pass
