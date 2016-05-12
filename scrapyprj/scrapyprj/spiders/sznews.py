@@ -38,4 +38,5 @@ class SznewsSpider(scrapy.Spider):
     def parse_detail(self, response):
         with open('/tmp/a.html', 'w') as f:
             f.write(response.body)
+        yield {'html': response.body}
         pass
