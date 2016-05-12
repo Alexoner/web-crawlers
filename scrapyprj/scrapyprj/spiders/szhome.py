@@ -71,7 +71,7 @@ class SzhomeSpider(scrapy.Spider):
             pub_time = extract_after_colon_ch(safe_extract(response.xpath(
                 '//*[@id="news_main"]/div[1]/div[1]/div/div[2]/span[1]/text()')), 1)
             click_count = extract_after_colon_ch(safe_extract(response.xpath(
-                '//*[@id="news_main"]/div[1]/div[1]/div/div[2]/span[2]')), 1)
+                '//*[@id="news_main"]/div[1]/div[1]/div/div[2]/span[2]/text()')), 1)
 
             #  item = HouseNewsItem()
             item = {}
