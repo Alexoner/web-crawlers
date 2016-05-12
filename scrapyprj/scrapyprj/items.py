@@ -51,6 +51,7 @@ class HouseNewsItem(scrapy.Item):
     click_count = scrapy.Field()  #点击量
     share_count = scrapy.Field()  #分享量
     thumb_count = scrapy.Field()  #点赞量
+    comment_count = scrapy.Field() #评论数
     author = scrapy.Field()  #作者
     editor = scrapy.Field()  #编辑
     html_document = scrapy.Field()  # 新闻的html文本
