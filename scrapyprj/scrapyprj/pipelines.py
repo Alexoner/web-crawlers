@@ -34,6 +34,5 @@ class JsonWithEncodingPipeline(object):
             return item
 
     def spider_closed(self, spider):
-        #  self.file.close()
         for output_file in self.output_files.values():
             output_file and output_file.close()

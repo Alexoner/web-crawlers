@@ -87,3 +87,8 @@ ENV/
 
 # Rope project settings
 .ropeproject
+log
+log/
+output/
+*.java
+.DS_Store
