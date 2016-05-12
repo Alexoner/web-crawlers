@@ -1,4 +1,5 @@
 
+import urlparse
 from goose import Goose
 from goose.text import StopWordsChinese
 
@@ -12,3 +13,5 @@ def extract_article(raw_html=None):
     return extract_article.goose.extract(raw_html=raw_html).infos
 extract_article.goose = Goose({'stopwords_class': StopWordsChinese})
 
+def extract_url(response, selector):
+    return urlparse.urljoin(response.url, safe_extract(selector))
