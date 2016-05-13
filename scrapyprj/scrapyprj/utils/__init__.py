@@ -7,8 +7,6 @@ from goose.text import StopWordsChinese
 
 
 def safe_extract(selectorObj, separator='\t'):
-    if not selectorObj:
-        return None
     if isinstance(selectorObj, scrapy.selector.SelectorList):
         return separator.join(selectorObj.extract())
     elif isinstance(selectorObj, scrapy.selector.Selector):
@@ -23,4 +21,8 @@ extract_article.goose = Goose({'stopwords_class': StopWordsChinese})
 def extract_url(response, selector):
     return urlparse.urljoin(response.url, safe_extract(selector))
 
-extract_after_colon_ch = lambda uniObj: uniObj and str(uniObj).split('：')[1].strip()
+def extract_after_colon_ch(uniObj, index):
+    try:
+        return uniObj and str(uniObj).split('：')[index].strip()
+    except IndexError as e:
+        return None
