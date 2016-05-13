@@ -12,40 +12,27 @@ sys.setdefaultencoding('utf-8')
 class HousenewsspiderSpider(scrapy.Spider):
     
     name = "houseNewsSpider"
-    allowed_domains = 
-    [
-        "weixinyidu.com","aiweibang.com",
-        "toutiao.com","taogonghao.com","mp.weixin.qq.com",
-        "wtoutiao.com","vccoo.com",
-    ]
-
-   	# start_urls = [
-    #    'http://www.weixinyidu.com/a_958',
-    #    'http://www.weixinyidu.com/a_970',
-    #    'http://www.weixinyidu.com/a_2650',
-    #    'http://www.weixinyidu.com/a_87979'
-    # ]
+    allowed_domains = ["weixinyidu.com","aiweibang.com","toutiao.com","taogonghao.com","mp.weixin.qq.com","wtoutiao.com","vccoo.com"]
 
     def start_requests(self):
     	seedUrlList = [
             #weixinyidu
-    		# {'url':'http://www.weixinyidu.com/a_958','name':'丁祖昱评楼市','source':'dzypls'},
-    		# {'url':'http://www.weixinyidu.com/a_970','name':'真叫卢俊的地产观','source':'zhenjiaolujun'},
-    		# {'url':'http://www.weixinyidu.com/a_2650','name':'地产八卦女','source':'dichanbaguanv'},
-    		# {'url':'http://www.weixinyidu.com/a_87979','name':'上海楼典','source':'shanghailord'},
+    		{'url':'http://www.weixinyidu.com/a_958','name':'丁祖昱评楼市','source':'dzypls'},
+    		{'url':'http://www.weixinyidu.com/a_970','name':'真叫卢俊的地产观','source':'zhenjiaolujun'},
+    		{'url':'http://www.weixinyidu.com/a_2650','name':'地产八卦女','source':'dichanbaguanv'},
+    		{'url':'http://www.weixinyidu.com/a_87979','name':'上海楼典','source':'shanghailord'},
 
       #       #aiweibang
-            # {'url':'http://top.aiweibang.com/u/203962','name':'地产大哥','source':'dichandage'},
-      #       {'url':'http://top.aiweibang.com/u/10380','name':'深圳地产通','source':'shenzhendichantong'},
+            {'url':'http://top.aiweibang.com/u/203962','name':'地产大哥','source':'dichandage'},
+            {'url':'http://top.aiweibang.com/u/10380','name':'深圳地产通','source':'shenzhendichantong'},
 
-            # {'url':'http://toutiao.com/m6188273732/','name':'梵高先生','source':'Mrvangogh1989'},
+            {'url':'http://toutiao.com/m6188273732/','name':'梵高先生','source':'Mrvangogh1989'},
             
-            # {'url':'http://www.taogonghao.com/wemedia/detail/1486.html','name':'房产头条','source':'jinrongtegong'}
+            {'url':'http://www.taogonghao.com/wemedia/detail/1486.html','name':'房产头条','source':'jinrongtegong'},
             
-            {'url':'http://www.wtoutiao.com/author/szlujz.html','name':'陆家嘴','source':'szlujz'}
+            {'url':'http://www.wtoutiao.com/author/szlujz.html','name':'陆家嘴','source':'szlujz'},
             
-      #       {'url':'http://www.vccoo.com/a/jg2w6','name':'地产大爆炸','source':'dichandabaozha'}
-
+            {'url':'http://www.vccoo.com/a/jg2w6','name':'地产大爆炸','source':'dichandabaozha'},
     	]
 
     	for seed in seedUrlList:
@@ -89,12 +76,12 @@ class HousenewsspiderSpider(scrapy.Spider):
         elif 'wtoutiao' in response.url:
             urlList = response.xpath("//div[@class='news-header']//a/@href").extract()
             for url in urlList:
-               yield scrapy.Request('http://www.wtoutiao.com/'+url,callback=self.parse_detail_wtoutiao,meta = paramData)
+                yield scrapy.Request(url,callback=self.parse_detail_wtoutiao,meta = paramData)
         
-        # elif 'vccoo' in response.url:
-        #     urlList = response.xpath("//div[@class='classify-list']//h3/a/@href").extract()
-        #     for url in urlList:
-        #        yield scrapy.Request(url,callback=self.parse_detail_vccoo,meta = paramData)
+        elif 'vccoo' in response.url:
+            urlList = response.xpath("//div[@class='classify-list']//h3/a/@href").extract()
+            for url in urlList:
+               yield scrapy.Request(url,callback=self.parse_detail_vccoo,meta = paramData)
 
     #generate newsItem from detail 
     def parse_detail(self,response):
@@ -214,6 +201,7 @@ class HousenewsspiderSpider(scrapy.Spider):
 
     def parse_detail_wtoutiao(self,response):
         #获取参数
+        print response.url,'=========='
         paramData = response.meta
 
         houseNews = HouseNewsItem()
@@ -222,17 +210,23 @@ class HousenewsspiderSpider(scrapy.Spider):
         houseNews['source'] = paramData['source']
         houseNews['author'] = paramData['name']
         #标题
-        houseNews['title'] = response.xpath("//h1[@class='news_title']/text()").extract()[0]
-        print houseNews['title']
-        #时间
-        houseNews['release_time'] = response.xpath("//span[@class='news_time']/text()").extract()[0]
-        #阅读量
-        houseNews['read_count'] =response.xpath("//span[@class ='news_read_no']/text()").extract()[1]
-        #点赞量
-        houseNews['thumb_count'] =response.xpath("//span[@class ='news_read_no']/text()").extract()[2]
+        houseNews['title'] = response.xpath("//h1/text()").extract()[0]
         #关键词，热词
-        houseNews['keywords'] = response.xpath("//a[@class='hot_txt']/text()").extract()
+        houseNews['keywords'] = response.xpath("//p[@class='news-tag']/a/text()").extract()
+        
+        tmpStr = response.xpath("//div[@class='article_header']/p[2]/text()").extract()[0]
+        if tmpStr:
+            pubTime = tmpStr.split('.')[1].strip()
+            houseNews['release_time'] = pubTime
+        
+
+        article = extract_article(raw_html=response.body)
+        houseNews['crawl_time'] = time.time()
+        houseNews['content'] = article['cleaned_text']      
+        #dom文本
+        houseNews['html_document'] = safe_extract(response.xpath("//div[@class='article_view']"))
         yield houseNews
+    
     def parse_detail_vccoo(self,response):
         #获取参数
         paramData = response.meta
@@ -240,17 +234,16 @@ class HousenewsspiderSpider(scrapy.Spider):
         houseNews = HouseNewsItem()
 
         houseNews['url'] = response.url
-        houseNews['source'] = paramData['source']
+        houseNews['source_name'] = paramData['source']
         houseNews['author'] = paramData['name']
         #标题
-        houseNews['title'] = response.xpath("//h1[@class='news_title']/text()").extract()[0]
-        print houseNews['title']
+        houseNews['title'] = response.xpath("//h1[@class='article-title']/a/text()").extract()[0]
         #时间
-        houseNews['release_time'] = response.xpath("//span[@class='news_time']/text()").extract()[0]
-        #阅读量
-        houseNews['read_count'] =response.xpath("//span[@class ='news_read_no']/text()").extract()[1]
-        #点赞量
-        houseNews['thumb_count'] =response.xpath("//span[@class ='news_read_no']/text()").extract()[2]
-        #关键词，热词
-        houseNews['keywords'] = response.xpath("//a[@class='hot_txt']/text()").extract()
+        houseNews['release_time'] = response.xpath("//div[@class='author-name']/text()").extract()[1]
+
+        article = extract_article(raw_html=response.body)
+        houseNews['crawl_time'] = time.time()
+        houseNews['content'] = article['cleaned_text']      
+        #dom文本
+        houseNews['html_document'] = safe_extract(response.xpath("//div[@class='article-container']"))
         yield houseNews
