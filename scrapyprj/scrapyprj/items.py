@@ -34,7 +34,7 @@ class ScrapyprjItem(scrapy.Item):
 
 class HouseNewsItem(scrapy.Item):
     news_id = scrapy.Field() #自动生成的ID
-    soource_category = scrapy.Field() #原来的类目
+    source_category = scrapy.Field() #原来的类目
     pre_cate = scrapy.Field()  #预测的类目
     source_nav = scrapy.Field()  #原来的导航类目
     source_id = scrapy.Field()  #原来的ID
