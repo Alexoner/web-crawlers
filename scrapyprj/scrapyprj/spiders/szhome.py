@@ -12,7 +12,7 @@ class SzhomeSpider(scrapy.Spider):
     allowed_domains = ["szhome.com", "news.szhome.com"]
     start_urls = (
         #  'http://www.szhome.com/',
-        'http://news.szhome.com/list/1030/432',
+        'http://news.szhome.com/list/1030/',
     )
 
     def __init__(self, name=None, **kwargs):
@@ -67,7 +67,9 @@ class SzhomeSpider(scrapy.Spider):
                 '//*[@id="news_main"]/div[1]/div[1]/div/div[1]/span[1]/text()')), 1)
             author = extract_after_colon_ch(safe_extract(response.xpath(
                 '//*[@id="news_main"]/div[1]/div[1]/div/div[1]/span[3]/text()'
-            )), 2)
+            )), 2) or extract_after_colon_ch(safe_extract(response.xpath(
+                '//*[@id="news_main"]/div[1]/div[1]/div/div[1]/span[3]/text()'
+            )), 1)
             pub_time = extract_after_colon_ch(safe_extract(response.xpath(
                 '//*[@id="news_main"]/div[1]/div[1]/div/div[2]/span[1]/text()')), 1)
             click_count = extract_after_colon_ch(safe_extract(response.xpath(
