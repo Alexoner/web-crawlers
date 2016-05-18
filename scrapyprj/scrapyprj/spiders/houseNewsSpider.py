@@ -10,9 +10,9 @@ reload(sys)
 sys.setdefaultencoding('utf-8')
 
 class HousenewsspiderSpider(scrapy.Spider):
-    
+
     name = "houseNewsSpider"
-    allowed_domains = ["weixinyidu.com","aiweibang.com","toutiao.com","taogonghao.com","mp.weixin.qq.com","wtoutiao.com","vccoo.com"]
+    allowed_domains = ["weixinyidu.com","aiweibang.com","toutiao.com","taogonghao.com","mp.weixin.qq.com","wtoutiao.com","vccoo.com",]
 
     def start_requests(self):
     	seedUrlList = [
@@ -27,11 +27,11 @@ class HousenewsspiderSpider(scrapy.Spider):
             {'url':'http://top.aiweibang.com/u/10380','name':'深圳地产通','source':'shenzhendichantong'},
 
             {'url':'http://toutiao.com/m6188273732/','name':'梵高先生','source':'Mrvangogh1989'},
-            
+
             {'url':'http://www.taogonghao.com/wemedia/detail/1486.html','name':'房产头条','source':'jinrongtegong'},
-            
+
             {'url':'http://www.wtoutiao.com/author/szlujz.html','name':'陆家嘴','source':'szlujz'},
-            
+
             {'url':'http://www.vccoo.com/a/jg2w6','name':'地产大爆炸','source':'dichandabaozha'},
     	]
 
@@ -45,7 +45,7 @@ class HousenewsspiderSpider(scrapy.Spider):
     	   urlList = response.xpath("//div[@class='news_content']//li/a/@href").extract()
     	   for url in urlList:
     		   yield scrapy.Request('http://www.weixinyidu.com'+url,callback=self.parse_detail,meta = paramData)
-        
+
         elif 'aiweibang' in response.url:
             #处理爱微帮
             articleList = response.xpath("//div[@id ='hot_article_list']//div[@class='article']//a/@href").extract()
@@ -77,17 +77,17 @@ class HousenewsspiderSpider(scrapy.Spider):
             urlList = response.xpath("//div[@class='news-header']//a/@href").extract()
             for url in urlList:
                 yield scrapy.Request(url,callback=self.parse_detail_wtoutiao,meta = paramData)
-        
+
         elif 'vccoo' in response.url:
             urlList = response.xpath("//div[@class='classify-list']//h3/a/@href").extract()
             for url in urlList:
                yield scrapy.Request(url,callback=self.parse_detail_vccoo,meta = paramData)
 
-    #generate newsItem from detail 
+    #generate newsItem from detail
     def parse_detail(self,response):
     	#获取参数
     	paramData = response.meta
-        
+
         article = extract_article(raw_html=response.body)
 
     	houseNews = HouseNewsItem()
@@ -107,7 +107,7 @@ class HousenewsspiderSpider(scrapy.Spider):
     	houseNews['keywords'] = safe_extract(response.xpath("//a[@class='hot_txt']/text()"))
         #爬取时间
         houseNews['crawl_time'] = time.time()
-        houseNews['content'] = article['cleaned_text']      
+        houseNews['content'] = article['cleaned_text']
         #dom文本
         houseNews['html_document'] = safe_extract(response.xpath("//div[@class = 'news_content']"))
         yield houseNews
@@ -124,18 +124,18 @@ class HousenewsspiderSpider(scrapy.Spider):
         houseNews['title'] = safe_extract(response.xpath("//h1[@class='title']/text()"))
         #时间
         houseNews['release_time'] = safe_extract(response.xpath("//span[contains(@class,'activity')]/text()"))
-        
+
         tmpAuthor = safe_extract(response.xpath("//span[contains(@class,'activity')]/text()"))
-        
+
         if tmpAuthor:
             houseNews['author'] = paramData['name'] +" - "+ tmpAuthor
         else:
             houseNews['author'] = paramData['name']
-        
+
         article = extract_article(raw_html=response.body)
 
         houseNews['crawl_time'] = time.time()
-        houseNews['content'] = article['cleaned_text']      
+        houseNews['content'] = article['cleaned_text']
         #dom文本
         houseNews['html_document'] = safe_extract(response.xpath("//div[@id='article-inner']"))
         yield houseNews
@@ -159,14 +159,14 @@ class HousenewsspiderSpider(scrapy.Spider):
         #类目
         houseNews['source_category'] ='房产'
         # safe_extract(response.xpath("//div[@class ='curpos']/a[2]/text()"))
-        
+
         article = extract_article(raw_html=response.body)
 
         houseNews['crawl_time'] = time.time()
-        houseNews['content'] = article['cleaned_text']      
+        houseNews['content'] = article['cleaned_text']
         #dom文本
         houseNews['html_document'] = safe_extract(response.xpath("//div[@class='detail-main']"))
-        #houseNews.html_document = 
+        #houseNews.html_document =
         #houseNews['read_count'] =response.xpath("//span[@class ='news_read_no']/text()").extract()[1]
         #点赞量
         #houseNews['thumb_count'] =response.xpath("//span[@class ='news_read_no']/text()").extract()[2]
@@ -175,7 +175,7 @@ class HousenewsspiderSpider(scrapy.Spider):
         yield houseNews
 
     def parse_detail_taogonghao(self,response):
-        
+
         #获取参数
         paramData = response.meta
 
@@ -185,16 +185,16 @@ class HousenewsspiderSpider(scrapy.Spider):
         houseNews['source_name'] = paramData['source']
         houseNews['author'] = paramData['name']
         houseNews['source_category'] ='房产头条'
-        # 
+        #
         #标题
         houseNews['title'] = response.xpath("//h2[@id='activity-name']/text()").extract()[0]
         #时间
         houseNews['release_time'] = response.xpath("//em[@id='post-date']/text()").extract()[0]
-        
+
         article = extract_article(raw_html=response.body)
 
         houseNews['crawl_time'] = time.time()
-        houseNews['content'] = article['cleaned_text']      
+        houseNews['content'] = article['cleaned_text']
         #dom文本
         houseNews['html_document'] = safe_extract(response.xpath("//div[@id='page-content']"))
         yield houseNews
@@ -213,20 +213,20 @@ class HousenewsspiderSpider(scrapy.Spider):
         houseNews['title'] = response.xpath("//h1/text()").extract()[0]
         #关键词，热词
         houseNews['keywords'] = response.xpath("//p[@class='news-tag']/a/text()").extract()
-        
+
         tmpStr = response.xpath("//div[@class='article_header']/p[2]/text()").extract()[0]
         if tmpStr:
             pubTime = tmpStr.split('.')[1].strip()
             houseNews['release_time'] = pubTime
-        
+
 
         article = extract_article(raw_html=response.body)
         houseNews['crawl_time'] = time.time()
-        houseNews['content'] = article['cleaned_text']      
+        houseNews['content'] = article['cleaned_text']
         #dom文本
         houseNews['html_document'] = safe_extract(response.xpath("//div[@class='article_view']"))
         yield houseNews
-    
+
     def parse_detail_vccoo(self,response):
         #获取参数
         paramData = response.meta
@@ -243,7 +243,7 @@ class HousenewsspiderSpider(scrapy.Spider):
 
         article = extract_article(raw_html=response.body)
         houseNews['crawl_time'] = time.time()
-        houseNews['content'] = article['cleaned_text']      
+        houseNews['content'] = article['cleaned_text']
         #dom文本
         houseNews['html_document'] = safe_extract(response.xpath("//div[@class='article-container']"))
         yield houseNews
