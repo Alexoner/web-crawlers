@@ -66,6 +66,7 @@ class HouseNewsItem(ScrapyprjItem):
     author = scrapy.Field()  # 作者
     editor = scrapy.Field()  # 编辑
     extend_info = scrapy.Field()  # 扩展字段
+    images = scrapy.Field() #图片
 
     def __repr__(self):
         """only print out attr1 after exiting the Pipeline"""
