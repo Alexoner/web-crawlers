@@ -68,6 +68,50 @@ class HouseNewsItem(ScrapyprjItem):
     extend_info = scrapy.Field()  # 扩展字段
     images = scrapy.Field() #图片
 
+#小区的基本信息，保存小区的基本信息
+class AreaStaticEntity(ScrapyprjItem):
+    source_url = scrapy.Field()#来源链接
+    source_name = scrapy.Field()#来源名称
+    url = scrapy.Field()#链接
+    area_id = scrapy.Field()#小区ID
+    area_name = scrapy.Field()#小区中文名
+    area_name_en = scrapy.Field()#小区英文名
+    area_alias = scrapy.Field()#小区别名
+    location = scrapy.Field()#地点，详细地址
+    coordinate = scrapy.Field()#经纬度坐标
+    price  = scrapy.Field()#价格
+    picture_urls =  scrapy.Field()#图片
+    business_circle = scrapy.Field()#商圈
+    developer = scrapy.Field()#开发商
+    prop_company = scrapy.Field()#物业公司
+    prop_price = scrapy.Field()#物业费
+    post_code = scrapy.Field()#邮编
+    subway = scrapy.Field()#地铁
+    bus = scrapy.Field() #公交
+    build_structure = scrapy.Field()#建筑结构
+    carports = scrapy.Field()#车位数量
+    green_percent = scrapy.Field()#绿化率
+    total_area = scrapy.Field()#总建筑面积
+    description = scrapy.Field()#描述
+    kindergarden = scrapy.Field()#幼儿园
+    middle_school = scrapy.Field()#中学
+    college = scrapy.Field()#大学
+    supermarket = scrapy.Field()#超市、综合体
+    hospital = scrapy.Field()#医院
+    postoffice = scrapy.Field()#邮局
+    bank = scrapy.Field()#银行
+    other_facility = scrapy.Field()#其他设施
+    tags = scrapy.Field() #小区标签、关键词
+
+    #小区的动态信息，如房价
+class AreaDynamicEntity(ScrapyprjItem):
+    area_id = scrapy.Field() #小区的ID
+    price = scrapy.Field() #当前价格
+    prop_price = scrapy.Field() #物业费
+    crawl_date = scrapy.Field() #爬取日期，到天级别
+
+
+
     def __repr__(self):
         """only print out attr1 after exiting the Pipeline"""
         return pformat({'title': str(self['title'])})
