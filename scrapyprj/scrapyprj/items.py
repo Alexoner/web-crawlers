@@ -70,9 +70,12 @@ class HouseNewsItem(ScrapyprjItem):
 
 #小区的基本信息，保存小区的基本信息
 class AreaStaticEntity(ScrapyprjItem):
-    source_url = scrapy.Field()#来源链接
-    source_name = scrapy.Field()#来源名称
+    source = scrapy.Field()#来源链接
     url = scrapy.Field()#链接
+    province = scrapy.Field() # 省份
+    city = scrapy.Field() #城市
+    area = scrapy.Field() #区
+    sub_area = scrapy.Field() # 片区
     area_id = scrapy.Field()#小区ID
     area_name = scrapy.Field()#小区中文名
     area_name_en = scrapy.Field()#小区英文名
@@ -109,6 +112,37 @@ class AreaDynamicEntity(ScrapyprjItem):
     price = scrapy.Field() #当前价格
     prop_price = scrapy.Field() #物业费
     crawl_date = scrapy.Field() #爬取日期，到天级别
+    second_count = scrapy.Field() # 二手房的数量
+    rent_count = scrapy.Field() # 出租房的数量
+
+
+    # 出租信息，包含个人和经纪人
+class RentEntity(ScrapyprjItem):
+    rent_type = scrapy.Field() # 出租类型，个人、经纪人
+    source = scrapy.Field() #信息来源
+    url = scrapy.Field() # 信息url
+    id = scrapy.Field() #信息ID，包含来源缩写
+    title = scrapy.Field() # 标题
+    rent_tags = scrapy.Field() #出租打的标签，网站上打得标签，几房几厅。。。
+    area_info = scrapy.Field() # 片区信息
+    province = scrapy.Field() #省份
+    city = scrapy.Field() # 城市
+    area = scrapy.Field() #区
+    sub_area = scrapy.Field() # 片区，即小区信息
+    address = scrapy.Field() #详细地址
+    release_time = scrapy.Field() # 发布日期
+    platform_sign = scrapy.Field() #平台认证信息
+    price = scrapy.Field() # 价格
+    rent_desc = scrapy.Field() # 租金说明
+    house_desc = scrapy.Field() #房屋说明
+    facility = scrapy.Field() # 设施
+    images = scrapy.Field() # 房屋图片
+    description = scrapy.Field() # 房屋描述
+    linkman = scrapy.Field() #联系人
+    contact_way = scrapy.Field() # 联系方式
+    view_count = scrapy.Field() # 浏览数量
+    crawl_time = scrapy.Field() # 爬取时间
+    extend_info = scrapy.Field() # 扩展信息
 
 
 
