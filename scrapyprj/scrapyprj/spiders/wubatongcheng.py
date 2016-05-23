@@ -124,7 +124,9 @@ class WubatongchengSpider(scrapy.Spider):
             result['tags'] = tagList.replace('\t',',')
 
 	#建筑年代和类型，unicode编码
-	# year_type = safe_extract(response.xpath("//dd/span[contains(text(),'\u5efa\u7b51\u5e74\u4ee3')]/parent::dd/text()"))
+        # import ipdb
+        # ipdb.set_trace()
+        year_type = safe_extract(response.xpath(u"//dd/span[contains(text(), '建筑年代')]/parent::dd/text()"))
  #        year = ''
  #        type = ''
  #        if year_type:
