@@ -26,3 +26,10 @@ def extract_after_colon_ch(uniObj, index):
         return uniObj and str(uniObj).split('：')[index].strip()
     except IndexError as e:
         return None
+def trim(raw_str):
+    raw_str = raw_str.replace('\r','')
+    raw_str = raw_str.replace('\n','')
+    raw_str = raw_str.replace('\t','')
+    raw_str = raw_str.strip()
+    return raw_str
+
