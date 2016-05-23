@@ -37,19 +37,21 @@ class SznewsSpider(scrapy.Spider):
                     'cookiejar': 2 * i + 1,
                 })
 
-        next_page = response.xpath(
+        next_pages = response.xpath(
             '//div[@class="fl w660-news-index"]/div/center/span/following-sibling::a[1]/@href')
-        yield scrapy.Request(
-            extract_url(response, next_page),
-            callback=self.parse,
-            headers={},
-            meta={
-                'item': {
-                    'uid': 'list',
-                },
-                'dont_merge_cookies': True,
-                'cookiejar': random.randint(1, 10000),
-            })
+        for next_page in next_pages:
+            self.logger.info('new request: %s' % extract_url(response, next_page))
+            yield scrapy.Request(
+                extract_url(response, next_page),
+                callback=self.parse,
+                headers={},
+                meta={
+                    'item': {
+                        'uid': 'list',
+                    },
+                    'dont_merge_cookies': True,
+                    'cookiejar': random.randint(1, 10000),
+                })
         pass
 
     def parse_detail(self, response):

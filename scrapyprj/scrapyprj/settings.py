@@ -14,6 +14,38 @@ BOT_NAME = 'scrapyprj'
 SPIDER_MODULES = ['scrapyprj.spiders']
 NEWSPIDER_MODULE = 'scrapyprj.spiders'
 
+# frontera settings
+from scrapy.settings.default_settings import SPIDER_MIDDLEWARES, DOWNLOADER_MIDDLEWARES
+SPIDER_MIDDLEWARES.update({
+    'frontera.contrib.scrapy.middlewares.seeds.FileSeedLoader': 650,
+    'frontera.contrib.scrapy.middlewares.schedulers.SchedulerSpiderMiddleware': 1000,
+})
+
+DOWNLOADER_MIDDLEWARES.update({
+    'frontera.contrib.scrapy.middlewares.schedulers.SchedulerDownloaderMiddleware': 1000,
+})
+
+SCHEDULER = 'frontera.contrib.scrapy.schedulers.frontier.FronteraScheduler'
+
+FRONTERA_SETTINGS = '%s.frontera.settings' % (BOT_NAME)
+
+# settings suitable for broad crawling
+HTTPCACHE_ENABLED = False   # Turns off disk cache, which has low hit ratio during broad crawls
+REDIRECT_ENABLED = True
+COOKIES_ENABLED = False
+DOWNLOAD_TIMEOUT = 120
+RETRY_ENABLED = False   # Retries can be handled by Frontera itself, depending on crawling strategy
+DOWNLOAD_MAXSIZE = 10 * 1024 * 1024  # Maximum document size, causes OOM kills if not set
+LOGSTATS_INTERVAL = 10  # Print stats every 10 secs to console
+
+# Auto throttling and concurrency settings for polite and responsible crawling
+# auto throttling
+AUTOTHROTTLE_ENABLED = True
+AUTOTHROTTLE_DEBUG = False
+AUTOTHROTTLE_MAX_DELAY = 3.0
+AUTOTHROTTLE_START_DELAY = 0.25     # Any small enough value, it will be adjusted during operation by averaging
+                                    # with response latencies.
+RANDOMIZE_DOWNLOAD_DELAY = False
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'scrapyprj (+http://www.yourdomain.com)'
@@ -24,7 +56,7 @@ CONCURRENT_REQUESTS = 512
 # Configure a delay for requests for the same website (default: 0)
 # See http://scrapy.readthedocs.org/en/latest/topics/settings.html#download-delay
 # See also autothrottle settings and docs
-DOWNLOAD_DELAY = 0.45
+DOWNLOAD_DELAY = 0.0
 # The download delay setting will honor only one of:
 # CONCURRENT_REQUESTS_PER_DOMAIN=16
 CONCURRENT_REQUESTS_PER_IP = 128
@@ -39,7 +71,6 @@ CONCURRENT_REQUESTS_PER_IP = 128
 DEFAULT_REQUEST_HEADERS = {
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
     'Accept-Encoding': 'gzip, deflate, sdch',
-    #  'Accept-Language': 'en',
     'Accept-Language': 'zh-CN,zh;q=0.8,en;q=0.6,ja;q=0.4,es;q=0.2,pt;q=0.2,ru;q=0.2,zh-TW;q=0.2',
     'Connection': 'keep-alive',
     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.87 Safari/537.36',
