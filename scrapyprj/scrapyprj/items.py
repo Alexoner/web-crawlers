@@ -71,7 +71,6 @@ class HouseNewsItem(ScrapyprjItem):
 #小区的基本信息，保存小区的基本信息
 class AreaStaticEntity(ScrapyprjItem):
     source = scrapy.Field()#来源链接
-    #url = scrapy.Field()#链接
     province = scrapy.Field() # 省份
     city = scrapy.Field() #城市
     area = scrapy.Field() #区
@@ -99,7 +98,7 @@ class AreaStaticEntity(ScrapyprjItem):
     #description = scrapy.Field()#描述
     kindergarden = scrapy.Field()#幼儿园
     middle_school = scrapy.Field()#中学
-    college = scrapy.Field()#大学
+    # college = scrapy.Field()#大学
     #supermarket = scrapy.Field()#超市、综合体
     #hospital = scrapy.Field()#医院
     #postoffice = scrapy.Field()#邮局
