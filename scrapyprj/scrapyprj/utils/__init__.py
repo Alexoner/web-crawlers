@@ -4,7 +4,7 @@ import urlparse
 import scrapy
 from goose import Goose
 from goose.text import StopWordsChinese
-
+import json
 #招租帖子标题包含的关键词
 letList = ['合租','直租','转租','押一付三','押一付一','出租','月付','急转','转','招室友']
 
@@ -48,3 +48,25 @@ def isRent(raw_str):
         if rentStr in raw_str:
             return True
 
+def getProvince_City(file_name):
+    lines = open(file_name).readlines()
+    cityList = []
+    for line in lines:
+        provinceMap = {}
+        obj = json.loads(line)
+        provinceMap['province'] = obj['provinceName']
+        cityObjs = []
+        for  city in obj['cityList']:
+            tmpMap ={}
+            tmpMap['city'] = city['cityName']
+            tmpMap['code'] = city['cityCode']
+            cityObjs.append(tmpMap)
+        provinceMap['cityList'] = cityObjs
+        cityList.append(provinceMap)
+    return cityList
+
+if __name__ == "__main__":
+    mapList = getProvince_City('/Users/xueliang.xl/Documents/58Data/province_city_name.txt')
+    for line in mapList:
+        print line
+        print '-----------------'
