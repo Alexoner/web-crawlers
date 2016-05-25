@@ -16,3 +16,20 @@ To run it,
     - [ ] TF-IDF
     - [ ] textrank
 - [ ] visualization
+
+## distributed deploying with frontera
+
+```shell
+# start the message broker
+python -m frontera.contrib.messagebus.zeromq.broker > zeromq.log 2>&1 &
+# start the db worker
+python -m frontera.worker.db --config frontier.workersettings > db.log 2>&1 &
+# start the strategy worker
+# ...
+# run spider workers parallely
+# run spider worker that loads seeds
+scrapy crawl general -L INFO -s FRONTERA_SETTINGS=scrapyprj.frontera.spider0 -s SEEDS_SOURCE=seeds.txt
+# run spider worker that only crawls
+scrapy crawl general -L INFO -s FRONTERA_SETTINGS=scrapyprj.frontera.spider1
+scrapy crawl general -L INFO -s FRONTERA_SETTINGS=scrapyprj.frontera.spider2
+```

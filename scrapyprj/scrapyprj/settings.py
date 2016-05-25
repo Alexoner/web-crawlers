@@ -27,7 +27,7 @@ DOWNLOADER_MIDDLEWARES.update({
 
 SCHEDULER = 'frontera.contrib.scrapy.schedulers.frontier.FronteraScheduler'
 
-FRONTERA_SETTINGS = '%s.frontera.settings' % (BOT_NAME)
+FRONTERA_SETTINGS = '%s.frontera.spider_settings' % (BOT_NAME)
 
 # settings suitable for broad crawling
 HTTPCACHE_ENABLED = False   # Turns off disk cache, which has low hit ratio during broad crawls

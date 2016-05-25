@@ -2,6 +2,8 @@
 import random
 import time
 import scrapy
+from scrapy import signals
+from scrapy.exceptions import DontCloseSpider
 
 from scrapyprj.items import HouseNewsItem
 from scrapyprj.utils import safe_extract, extract_article, extract_url
@@ -10,7 +12,7 @@ from scrapyprj.utils import safe_extract, extract_article, extract_url
 class SznewsSpider(scrapy.Spider):
     handle_httpstatus_list = [400, 404, 407, 502]
     name = "sznews"
-    allowed_domains = ["dc.sznews.com"]
+    # allowed_domains = ["dc.sznews.com"]
     start_urls = (
         'http://dc.sznews.com/node_204507.htm',
     )
@@ -18,8 +20,27 @@ class SznewsSpider(scrapy.Spider):
     def __init__(self, name=None, **kwargs):
         super(SznewsSpider, self).__init__(name, **kwargs)
 
-    def parse(self, response):
+    @classmethod
+    def from_crawler(cls, crawler, *args, **kwargs):
+        spider = cls(*args, **kwargs)
+        spider._set_crawler(crawler)
+        spider.crawler.signals.connect(spider.spider_idle, signal=signals.spider_idle)
+        spider.crawler.signals.connect(spider.spider_open, signal-signals.spider_opened)
+        return spider
 
+    def spider_opened(self):
+        self.log("Spider opened signal caught.")
+
+    def spider_idle(self):
+        self.log("Spider idle signal caught.")
+        raise DontCloseSpider
+
+    def parse(self, response):
+        self.logger.info('parsing %s' % response.headers)
+        yield {
+            'headers':response.headers,
+            'body': response.body,
+        }
         article_titles = response.xpath(
             '//div[@class="fl w660-news-index"]/div[@class="list-con"]/h3/a')
         for i, article_title in enumerate(article_titles):

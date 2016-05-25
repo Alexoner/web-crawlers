@@ -20,7 +20,7 @@ class ScrapyprjItem(scrapy.Item):
 
     def __repr__(self):
         """"""
-        return pformat({'title': str(self.get('name'))})
+        return pformat({'name': str(self.get('name'))})
     pass
 
 class TrafficTicketItem(ScrapyprjItem):
