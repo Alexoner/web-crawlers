@@ -4,7 +4,7 @@ import os
 import sys
 import time
 from scrapyprj.items import AreaStaticEntity
-from scrapyprj.utils import safe_extract, extract_article, extract_url, trim
+from scrapyprj.utils import safe_extract, extract_article, extract_url, trim, getProvince_City
 import json
 import hashlib
 import re
@@ -14,10 +14,29 @@ sys.setdefaultencoding('utf-8')
 class WubatongchengSpider(scrapy.Spider):
     name = "wubatongcheng"
     allowed_domains = ["58.com"]
-    prefixUrl = 'bj'
+    existList = ['bj','zh','sh','sz','cs','cq','gz','hrb','nj','sy','tj','wh']
+    prefixUrl = 'sy'
     def start_requests(self):
-        start = 'http://'+self.prefixUrl+'.58.com/xiaoqu/pn_1'
-        yield scrapy.Request(start, callback = self.parse_nextAndSub)
+        listMap = getProvince_City('/Users/xueliang.xl/web-crawlers/scrapyprj/scrapyprj/province_city_name.txt')
+        for provinceJson in listMap:
+            provinceJson = json.dumps(provinceJson)
+            jsonObj = json.loads(provinceJson)
+            province =  jsonObj['province']
+            cityList =  jsonObj['cityList']
+            for cityJson in cityList:
+                cityJson = json.dumps(cityJson)
+                city =  json.loads(cityJson)
+                cityName = city['city']
+                cityCode = city['code']
+                param = {}
+                param['province'] = province
+                param['cityCode'] = cityCode
+                param['cityName'] = cityName
+                if cityCode in self.existList:
+                    print 'city ',cityName ,'already done'
+                else:
+                    url = 'http://'+cityCode+'.58.com/xiaoqu/pn_1'
+                    yield scrapy.Request(url,callback = self.parse_nextAndSub,meta = param)
 
     def parse_nextAndSub(self, response):
         urlList = response.xpath("//ul/li[@class='tli1']/a/@href").extract()
@@ -28,8 +47,8 @@ class WubatongchengSpider(scrapy.Spider):
                 nextPage = nextPage.replace('/', '').strip()
             num = int(nextPage)
             num += 1
-            nextUrl = 'http://'+self.prefixUrl+'.58.com/xiaoqu/pn_'+str(num)
-            yield scrapy.Request(nextUrl, callback = self.parse_nextAndSub)
+            nextUrl = 'http://'+response.meta['cityCode']+'.58.com/xiaoqu/pn_'+str(num)
+            yield scrapy.Request(nextUrl, callback = self.parse_nextAndSub, meta = response.meta)
         #详细内容
         blockList = response.xpath("//table[@class='tbimg']/tbody/tr")
         for  i in range(1, len(blockList)+1):
@@ -41,8 +60,10 @@ class WubatongchengSpider(scrapy.Spider):
             metaData['second_num'] = second_num
             metaData['rend_num'] = rend_num
             metaData['money'] = trim(money)
-            if url != 'http://'+self.prefixUrl+'.58.com/xiaoqu/':
-                yield scrapy.Request(url, callback = self.parse_detail,meta = metaData)
+            metaData['province'] = response.meta['province']
+            metaData['cityCode'] = response.meta['cityCode']
+            metaData['cityName'] = response.meta['cityName']
+            yield scrapy.Request(url, callback = self.parse_detail,meta = metaData)
 
    #解析detail
     def parse_detail(self,response):
@@ -77,8 +98,8 @@ class WubatongchengSpider(scrapy.Spider):
             result['area_alias'] = alias_name
 
         #省市和坐标
-        province = '北京'
-        city = '北京'
+        province = response.meta['province']
+        city = response.meta['cityName']
         longitude = ''
         latitude = ''
         locationStr = re.search(r'xiaoqu:({.*?})', response.body).group(1)
