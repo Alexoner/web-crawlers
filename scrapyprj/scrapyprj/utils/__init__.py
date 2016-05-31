@@ -48,6 +48,16 @@ def isRent(raw_str):
         if rentStr in raw_str:
             return True
 
+def getExistList(file_name):
+    lines = open(file_name).readlines()
+    existList = []
+    for line in lines:
+        line = json.dumps(line)
+        jsonObj = json.loads(line)
+        print jsonObj
+        existList.append(jsonObj['url'])
+    print existList
+    return existList
 def getProvince_City(file_name):
     lines = open(file_name).readlines()
     cityList = []
@@ -66,7 +76,7 @@ def getProvince_City(file_name):
     return cityList
 
 if __name__ == "__main__":
-    mapList = getProvince_City('/Users/xueliang.xl/Documents/58Data/province_city_name.txt')
+    mapList = getExistList('/Users/xueliang.xl/work/getter/2016-05-24/output/xiaoqu_changsha.json')
     for line in mapList:
         print line
         print '-----------------'

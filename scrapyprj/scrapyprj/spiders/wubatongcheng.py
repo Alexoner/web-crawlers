@@ -4,7 +4,7 @@ import os
 import sys
 import time
 from scrapyprj.items import AreaStaticEntity
-from scrapyprj.utils import safe_extract, extract_article, extract_url, trim, getProvince_City
+from scrapyprj.utils import safe_extract, extract_article, extract_url, trim, getProvince_City, getExistList
 import json
 import hashlib
 import re
@@ -16,8 +16,10 @@ class WubatongchengSpider(scrapy.Spider):
     allowed_domains = ["58.com"]
     existList = ['bj','zh','sh','sz','cs','cq','gz','hrb','nj','sy','tj','wh']
     prefixUrl = 'sy'
+    allreadyList = []
     def start_requests(self):
         listMap = getProvince_City('/Users/xueliang.xl/web-crawlers/scrapyprj/scrapyprj/province_city_name.txt')
+        allreadyList = getExistList('/Users/xueliang.xl/work/getter/2016-05-24/output/xiaoqu_changsha.json')
         for provinceJson in listMap:
             provinceJson = json.dumps(provinceJson)
             jsonObj = json.loads(provinceJson)
@@ -53,6 +55,8 @@ class WubatongchengSpider(scrapy.Spider):
         blockList = response.xpath("//table[@class='tbimg']/tbody/tr")
         for  i in range(1, len(blockList)+1):
             url = safe_extract(response.xpath("//table[@class='tbimg']/tbody/tr["+str(i)+"]//ul/li[@class='tli1']/a/@href"))
+            if url in allreadyList:
+                continue
             second_num = safe_extract(response.xpath("//table[@class='tbimg']/tbody/tr["+str(i)+"]//ul/li[@class='tli3'][1]/span[1]/text()"))
             rend_num = safe_extract(response.xpath("//table[@class='tbimg']/tbody/tr["+str(i)+"]//ul/li[@class='tli3'][1]/span[1]/text()"))
             money = safe_extract(response.xpath("//table[@class='tbimg']/tbody/tr["+str(i)+"]//p/b[@class='money']/text()"))
