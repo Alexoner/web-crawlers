@@ -150,6 +150,30 @@ class RentEntity(ScrapyprjItem):
     #crawl_time = scrapy.Field() # 爬取时间
     extend_info = scrapy.Field() # 扩展信息
 
+#豆瓣的帖子实体
+class RentArticle(ScrapyprjItem):
+    id = scrapy.Field() #为该记录生成的一个md5的签名
+    source_url = scrapy.Field() #来源链接
+    source_name = scrapy.Field() #来源名称
+    topic_id = scrapy.Field() #原网站的帖子ID
+    title = scrapy.Field() #标题
+    topic_type = scrapy.Field() #帖子的类型（求租、合租、其他...）
+    user_name = scrapy.Field() #user 的名字
+    user_id = scrapy.Field() #user的Id
+    latest_time = scrapy.Field() #帖子的最近回复日期
+    reply_count = scrapy.Field() # 帖子的回复数量
+    content = scrapy.Field() #帖子内容
+    pic_urls = scrapy.Field() #图片链接
+
+#豆瓣的回复实体
+class  CommentReply(ScrapyprjItem):
+    id = scrapy.Field() #回复记录的ID,topic+time
+    outer_id = scrapy.Field() #帖子的Id,对应RentArticle的ID
+    user_url = scrapy.Field() #用户的链接
+    user_name = scrapy.Field() #用户的名称
+    reply_time = scrapy.Field() #回复时间
+    content = scrapy.Field() #回复内容
+    tags = scrapy.Field() #标签
 
 
     def __repr__(self):
