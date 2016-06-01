@@ -9,7 +9,7 @@ import json
 letList = ['合租','直租','转租','押一付三','押一付一','出租','月付','急转','转','招室友']
 
 #租房帖子题目包含的关键词
-rentList = ['求租','']
+rentList = ['求租']
 def safe_extract(selectorObj, separator='\t'):
     if isinstance(selectorObj, scrapy.selector.SelectorList):
         return separator.join(selectorObj.extract())
