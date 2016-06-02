@@ -12,9 +12,9 @@ import scrapy
 #  from scrapy.loader import ItemLoader
 from scrapyprj.items import ScrapyprjItem
 
-# XXX: sys.getdefaultencoding == 'ascii'
-reload(sys)
-sys.setdefaultencoding('utf-8')
+# XXX: sys.getdefaultencoding == 'ascii' DON'T USE IN PYTHON3
+# reload(sys)
+# sys.setdefaultencoding('utf-8')
 
 #  DIRNAME = '{}/..'.format(os.path.dirname(__file__))
 DIRNAME = '{}/work/getter/{}'.format(os.path.expanduser('~'), time.time())
@@ -576,15 +576,15 @@ class EuroperailSpider(scrapy.Spider):
         self.fwfailed = open(self.file_failed, 'a+')
         self.fwerror = open(self.file_error, 'a+')
         self.fwok = open(self.file_ok, 'a+')
-        print 'loading pairs alreay got ...'
+        self.logger.info( 'loading pairs alreay got ...' )
         self.already_got = self.read_already_got(self.file_ok, self.file_error, self.file_failed)
-        print 'loaded pairs already got, num = %d' % len(self.already_got)
+        self.logger.info('loaded pairs already got, num = %d' % len(self.already_got))
 
 
         if not os.path.exists(self.dir_output):
             os.makedirs(self.dir_output)
 
-        print 'loading datasource ...'
+        self.logger.info('loading datasource ...')
         # element is: (fs,f,ts,t, date, time_segment),
         # example: fs=巴黎&ts=伦敦&f=FRPAR&t=GBLON&date=2016-03-31&time=01:00,23:00
         datasource = []
@@ -607,7 +607,7 @@ class EuroperailSpider(scrapy.Spider):
                     ds = pair + (go_date, time_segment,)
                     if ds not in self.already_got:
                         datasource.append(ds)
-        print 'filtered duplicate ones, datasource num = %d' % len(datasource)
+        self.logger.info('filtered duplicate ones, datasource num = %d' % len(datasource))
         return datasource
 
     #----------------------------------------------------------------------

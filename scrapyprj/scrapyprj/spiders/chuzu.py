@@ -8,8 +8,9 @@ from scrapyprj.utils import safe_extract, extract_article, extract_url, trim
 import json
 import hashlib
 import re
-reload(sys)
-sys.setdefaultencoding('utf-8')
+from ..utils import PYTHON_VERSION
+if PYTHON_VERSION == 3:
+    from imp import reload
 
 import scrapy
 class ChuzuSpider(scrapy.Spider):
