@@ -17,6 +17,7 @@ class ProxyDownloaderMiddleware(object):
         try:
             fin = open(self.proxy_list)
         except Exception as e:
+            logger.error('error opening proxy file %s, %s' % (self.proxy_list, e))
             #  raise e
             return
 
