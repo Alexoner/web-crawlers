@@ -41,6 +41,7 @@ class DoubanSpider(scrapy.Spider):
     	# mapList.append(group2)
     	# mapList.append(group3)
     	for url in mapList:
+            print 'send url ->', url
             yield scrapy.Request(url['url'], headers = self.header,callback = self.parse_nextAndSub,meta = url)
 
 
@@ -48,6 +49,7 @@ class DoubanSpider(scrapy.Spider):
     def parse_nextAndSub(self,response):
         #首先获得时间列表，获得该列表的下级数据做分发
     	timeList = safe_extract(response.xpath("//td[@nowrap = 'nowrap'][@class='time']"))
+        print 'parse timeList->', timeList
     	for i in range(1,len(timeList)+1):
             timeStr = timeList[i - 1]
             try:
