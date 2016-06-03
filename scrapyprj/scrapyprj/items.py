@@ -175,7 +175,16 @@ class  CommentReply(ScrapyprjItem):
     content = scrapy.Field() #回复内容
     tags = scrapy.Field() #标签
 
-
+#proxy对应的实体
+class ProxyInfo(ScrapyprjItem):
+    ip = scrapy.Field() #IP
+    port = scrapy.Field() #端口
+    level = scrapy.Field() #等级，高匿、透明等
+    head_type = scrapy.Field() #http,https
+    method_type = scrapy.Field() # get,post
+    position = scrapy.Field() #位置
+    last_time = scrapy.Field() #最后检查时间
+    speed = scrapy.Field() #响应速度
     def __repr__(self):
         """only print out attr1 after exiting the Pipeline"""
         return pformat({'title': str(self['title'])})
