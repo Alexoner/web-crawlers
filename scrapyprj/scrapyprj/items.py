@@ -185,6 +185,7 @@ class ProxyInfo(ScrapyprjItem):
     position = scrapy.Field() #位置
     last_time = scrapy.Field() #最后检查时间
     speed = scrapy.Field() #响应速度
+    name = scrapy.Field()
    
 #商品信息
 class ProductInfo(ScrapyprjItem):
