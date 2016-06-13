@@ -8,3 +8,11 @@ To run it,
 ```shell
 ./run.sh
 ```
+
+
+## TODO
+
+- [ ] keyword extraction from articles
+    - [ ] TF-IDF
+    - [ ] textrank
+- [ ] visualization
