@@ -27,5 +27,10 @@ To run it,
 	house.conf
 	该配置文件是房产数据的Logstash配置文件，输出到Elasticsearch
 **注意：**后面会统一这个配置，所有任务用一个配置，分开配置方便测试
+
+
+##About Dockerfile
+在尝试Docker安装后，决定将Python开发环境和Java相关环境隔离(ELK使用的是JDK)，Docker中安装python相关环境，主要是爬虫，其余的环境安装在宿主机上，爬取数据在docker中和宿主机共享目录
+这个Dockerfile没有安装caffe和torch
 	
 
