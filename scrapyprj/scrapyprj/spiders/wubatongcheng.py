@@ -248,7 +248,8 @@ class WubatongchengSpider(scrapy.Spider):
             response.xpath("//div[@id='peitao_4']/p/text()"))
         if description:
             result['description'] = description
-
+        #指定logstash中对应的处理标记
+        result['db_name'] = 'areainfo'
         yield result
 
     def parse(self, response):

@@ -17,7 +17,8 @@ class ScrapyprjItem(scrapy.Item):
     description = scrapy.Field()
     crawl_time = scrapy.Field()  # 爬取时间
     html_document = scrapy.Field()  # 新闻的html文本
-
+    db_name = scrapy.Field() #索引的名称，或者是DB的名称，用来给logstash 文件来区分是那种类型的数据
+    
     def __repr__(self):
         """"""
         return pformat({'name': str(self['name'])})

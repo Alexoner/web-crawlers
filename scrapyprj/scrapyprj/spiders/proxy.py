@@ -81,6 +81,7 @@ class ProxySpider(scrapy.Spider):
             timeStr = timeList[0]+"-"+timeList[1]+"-"+timeList[2]+" "+timeList[3]+":00:00"
             timeStame = time.mktime(datetime.strptime(timeStr,'%Y-%m-%d %H:%M:%S').timetuple())
             proxy = ProxyInfo()
+            proxy['db_name'] = 'proxy'
             proxy['ip'] = ip
             proxy['port'] = port
             proxy['level'] = level.replace(u'代理','').strip()
