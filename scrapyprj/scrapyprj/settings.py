@@ -87,7 +87,7 @@ SPIDER_MIDDLEWARES = {
 DOWNLOADER_MIDDLEWARES = {
     #  'scrapy.downloadermiddlewares.useragent.UserAgentMiddleware': None,
     #  'scrapy_fake_useragent.middleware.RandomUserAgentMiddleware': 400,
-    'scrapyprj.middlewares.ProxyDownloaderMiddleware': 543,
+    'scrapyprj.middlewares.randomproxy.ProxyDownloaderMiddleware': 543,
     'scrapyprj.middlewares.fakeproxy.FakeProxyMiddleware': 544,
 }
 
@@ -129,6 +129,7 @@ import os
 import time
 
 #  DIRNAME = os.path.dirname(__file__)
+OUTPUT_DIR = '{}/work/getter'.format(os.path.expanduser('~'))
 DIRNAME = '{}/work/getter/{}'.format(
     os.path.expanduser('~'), time.strftime(
         '%Y-%m-%d', time.localtime()))
@@ -138,8 +139,8 @@ try:
     os.mkdir('{}/output'.format(DIRNAME))
 except Exception as e:
     pass
-PROXY_LIST = '{}/proxies.getter.txt'.format(DIRNAME)
-PROXY_LIST_ANONYMOUS = '{}/proxies.tor.txt'.format(DIRNAME)
+PROXY_LIST = '{}/proxies.txt'.format(OUTPUT_DIR)
+# PROXY_LIST_ANONYMOUS = '{}/proxies.tor.txt'.format(DIRNAME)
 
 #  LOG_FILE = '{}/log/{}-{}.log'.format(DIRNAME, BOT_NAME, time.strftime('%Y-%m-%d', time.localtime(time.time())))
 

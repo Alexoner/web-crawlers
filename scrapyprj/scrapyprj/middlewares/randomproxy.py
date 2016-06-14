@@ -6,6 +6,8 @@ import random
 import base64
 import logging
 
+from ..utils import PYTHON_VERSION
+
 logger = logging.getLogger(__name__)
 
 class ProxyDownloaderMiddleware(object):
@@ -17,6 +19,7 @@ class ProxyDownloaderMiddleware(object):
         try:
             fin = open(self.proxy_list)
         except Exception as e:
+            logger.error('error opening proxy file %s, %s' % (self.proxy_list, e))
             #  raise e
             return
 
@@ -57,23 +60,25 @@ class ProxyDownloaderMiddleware(object):
             # use the same proxy for subsequent requests
             proxy_address = request.meta.get('proxy')
         else:
-            proxy_address = random.choice(self.proxies.keys())
+            proxy_keys = self.proxies.keys()
+            proxy_keys = list(proxy_keys) if PYTHON_VERSION == 3 else proxy_keys
+            proxy_address = random.choice(proxy_keys)
         proxy_user_pass = self.proxies.get(proxy_address)
 
         request.meta['proxy'] = proxy_address
-        logger.debug('proxy: %s', proxy_address)
+        logger.debug('proxy IP: %s for URL: %s', proxy_address, request.url)
         if proxy_user_pass:
             basic_auth = 'Basic ' + base64.encodestring(proxy_user_pass)
             request.headers['Proxy-Authorization'] = basic_auth
 
     def process_exception(self, request, exception, spider):
         proxy = request.meta.get('proxy')
-        logger.debug('Exception %s with failed proxy <%s>, %d proxies left' % (
-            exception, proxy, len(self.proxies)))
-        try:
+        logger.error('Request failed with proxy <%s>, %d proxies left' % (
+            proxy, len(self.proxies)))
+        logger.error('Exception: %s, %s' % (exception.__class__, exception))
+        if proxy:
+            del request.meta['proxy']
             if proxy in self.proxies:
                 # don't delete
                 #  del self.proxies[proxy]
                 pass
-        except ValueError:
-            pass

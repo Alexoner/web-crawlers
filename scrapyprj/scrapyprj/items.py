@@ -17,7 +17,8 @@ class ScrapyprjItem(scrapy.Item):
     description = scrapy.Field()
     crawl_time = scrapy.Field()  # 爬取时间
     html_document = scrapy.Field()  # 新闻的html文本
-
+    db_name = scrapy.Field() #索引的名称，或者是DB的名称，用来给logstash 文件来区分是那种类型的数据
+    
     def __repr__(self):
         """"""
         return pformat({'name': str(self.get('name'))})
@@ -150,7 +151,94 @@ class RentEntity(ScrapyprjItem):
     #crawl_time = scrapy.Field() # 爬取时间
     extend_info = scrapy.Field() # 扩展信息
 
+#豆瓣的帖子实体
+class RentArticle(ScrapyprjItem):
+    id = scrapy.Field() #为该记录生成的一个md5的签名
+    source_url = scrapy.Field() #来源链接
+    source_name = scrapy.Field() #来源名称
+    topic_id = scrapy.Field() #原网站的帖子ID
+    title = scrapy.Field() #标题
+    topic_type = scrapy.Field() #帖子的类型（求租、合租、其他...）
+    user_name = scrapy.Field() #user 的名字
+    user_id = scrapy.Field() #user的Id
+    latest_time = scrapy.Field() #帖子的最近回复日期
+    reply_count = scrapy.Field() # 帖子的回复数量
+    content = scrapy.Field() #帖子内容
+    pic_urls = scrapy.Field() #图片链接
 
+#豆瓣的回复实体
+class  CommentReply(ScrapyprjItem):
+    id = scrapy.Field() #回复记录的ID,topic+time
+    outer_id = scrapy.Field() #帖子的Id,对应RentArticle的ID
+    user_url = scrapy.Field() #用户的链接
+    user_name = scrapy.Field() #用户的名称
+    reply_time = scrapy.Field() #回复时间
+    content = scrapy.Field() #回复内容
+    tags = scrapy.Field() #标签
+
+#proxy对应的实体
+class ProxyInfo(ScrapyprjItem):
+    ip = scrapy.Field() #IP
+    port = scrapy.Field() #端口
+    level = scrapy.Field() #等级，高匿、透明等
+    head_type = scrapy.Field() #http,https
+    method_type = scrapy.Field() # get,post
+    position = scrapy.Field() #位置
+    last_time = scrapy.Field() #最后检查时间
+    speed = scrapy.Field() #响应速度
+    name = scrapy.Field()
+   
+#商品信息
+class ProductInfo(ScrapyprjItem):
+
+    site = scrapy.Field() #站点信息
+    product_id = scrapy.Field() #原网站ID
+    product_urls = scrapy.Field() # 商品图片链接
+    product_title = scrapy.Field() # 商品标题
+    product_tags = scrapy.Field() #店铺的标签
+    brand = scrapy.Field() # 品牌信息
+    brand_alias = scrapy.Field() # 品牌别名
+    brand_url = scrapy.Field() #品牌图片链接
+    cate1 = scrapy.Field() # 一级类目
+    cate2 = scrapy.Field() #二级类目
+    cate3 = scrapy.Field() #三级类目
+    cate4 = scrapy.Field() #四级类目
+    cate5 = scrapy.Field() #五级类目
+    cate6 = scrapy.Field() #六级类目
+    order_count = scrapy.Field() # 订单量
+    comment_count = scrapy.Field() #评论数
+    like_count = scrapy.Field() # 喜欢、点赞数量
+    car_count = scrapy.Field() #购物车数量
+    mark_count = scrapy.Field() #收藏夹数量
+    rank = scrapy.Field() # 排名
+    origin_price = scrapy.Field() # 原价
+    currency = scrapy.Field() #币种
+    discount_price = scrapy.Field() #折扣价
+    min_price = scrapy.Field() # 最高价
+    max_price = scrapy.Field() #最低价
+    discount = scrapy.Field() #折扣
+    stock = scrapy.Field() #库存量
+    freight_fee = scrapy.Field() # 是否免邮
+    new_flag = scrapy.Field() #是否是新品
+    shop_id = scrapy.Field() #所属店铺
+    item_score = scrapy.Field() #商品评分
+    extend_info = scrapy.Field() # 商品扩展信息
+
+class ShopInfo(ScrapyprjItem):
+    site = scrapy.Field() #来源
+    shop_id = scrapy.Field() #店铺ID
+    shop_name = scrapy.Field() # 店铺名称
+    shop_url = scrapy.Field() #店铺的链接
+    shop_pic = scrapy.Field() #店铺的图片链接
+    shop_info = scrapy.Field() # 店铺信息
+    shop_tags = scrapy.Field() #店铺的标签
+    shop_depart = scrapy.Field() # 店铺所属公司
+    shop_socre = scrapy.Field() # 店铺得分
+    shop_grade = scrapy.Field() #店铺等级
+    shop_wish = scrapy.Field() # 店铺收藏数量
+    shop_address = scrapy.Field() # 店铺地址
+    shop_contact = scrapy.Field() # 店铺联系方式
+    extend_info = scrapy.Field() # 店铺扩展信息
 
     def __repr__(self):
         """only print out attr1 after exiting the Pipeline"""

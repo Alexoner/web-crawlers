@@ -12,10 +12,7 @@ class DmozSpider(scrapy.spiders.Spider):
 
     def parse(self, response):
         filename = response.url.split("/")[-2] + '.html'
-        with open(filename, 'wb') as f:
-            f.write(response.body)
-
-    #  def start_requests(self):
-        #  #  super(DmozSpider, self).start_requests()
-        #  for url in self.start_urls:
-            #  yield scrapy.Request(url)
+        yield {
+            'url': response.url,
+            'content': str(response.body[:100]),
+        }
