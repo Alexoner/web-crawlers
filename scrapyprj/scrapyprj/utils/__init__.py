@@ -91,6 +91,11 @@ def getProvince_City(file_name):
         provinceMap['cityList'] = cityObjs
         cityList.append(provinceMap)
     return cityList
+    
+def joinList(strList,separator=',',replaceTag='#'):
+    for i in range(0,len(strList)):
+        strList[i] = strList[i].replace(replaceTag,'')
+    return separator.join(strList)
 
 if __name__ == "__main__":
     mapList = getExistList(

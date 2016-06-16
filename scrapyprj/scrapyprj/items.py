@@ -240,6 +240,28 @@ class ShopInfo(ScrapyprjItem):
     shop_contact = scrapy.Field() # 店铺联系方式
     extend_info = scrapy.Field() # 店铺扩展信息
 
+#潮流用户
+class TrendUser(ScrapyprjItem):
+    followers = scrapy.Field() #follower的数量
+    followings= scrapy.Field() #following的数量
+    id = scrapy.Field() #user的ID
+
+#潮流的实体
+class TrendEntity(ScrapyprjItem):
+    user_id = scrapy.Field()
+    last_time = scrapy.Field()
+    tags = scrapy.Field()
+    brands = scrapy.Field()
+    cate1 = scrapy.Field()
+    cate2 = scrapy.Field()
+    cate3 = scrapy.Field()
+    cate4 = scrapy.Field()
+    like_count = scrapy.Field()#喜欢、点赞等
+    save_count = scrapy.Field()#收藏、购物车等
+    picture_urls = scrapy.Field()
+
+
+
     def __repr__(self):
         """only print out attr1 after exiting the Pipeline"""
         return pformat({'title': str(self['title'])})
