@@ -61,7 +61,7 @@ class ProxySpider(scrapy.Spider):
             return
         day = re.search(u'([\d]+)日', lastTime).group(1)
         hour= re.search(u'([\d]+)时', lastTime).group(1)
-        print day,hour
+        print ( day,hour )
         if day.startswith('0'):
             day = day.replace('0','').strip()
         if hour =='00':
@@ -70,7 +70,7 @@ class ProxySpider(scrapy.Spider):
             if hour.startswith('0'):
                 hour = hour.replace('0','').strip()
         #最后一条满足条件那么翻页
-        print 'crawl day and hour is ',self.dayStr,self.hourStr,'proxy site is',day,hour
+        print ( 'crawl day and hour is ',self.dayStr,self.hourStr,'proxy site is',day,hour )
         if self.dayStr==day and abs(int(self.hour)-int(Strhour))<=1:
             pageNo =  re.search(r'([\d]+).html',response.url).group(1)
             nextPage = int(pageNo)+1
@@ -128,6 +128,7 @@ class ProxySpider(scrapy.Spider):
             proxy['speed'] = '1'
             if ip:
                 yield proxy
+
     def parse_proxya(self, response):
         proxyList = re.findall(r'([\d]+\.[\d]+\.[\d]+\.[\d]+\:[\d]+)' , response.body)
         for  i in range(0,len(proxyList)):
@@ -144,3 +145,6 @@ class ProxySpider(scrapy.Spider):
             proxy['speed'] = '1'
             if proxy['ip']:
                 yield proxy
+
+    def parse(self, response):
+        pass
