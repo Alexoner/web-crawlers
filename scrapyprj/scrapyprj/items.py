@@ -21,7 +21,7 @@ class ScrapyprjItem(scrapy.Item):
     
     def __repr__(self):
         """"""
-        return pformat({'name': str(self['name'])})
+        return pformat({'url': str(self['url'])})
     pass
 
 class TrafficTicketItem(ScrapyprjItem):
@@ -190,7 +190,6 @@ class ProxyInfo(ScrapyprjItem):
    
 #商品信息
 class ProductInfo(ScrapyprjItem):
-
     site = scrapy.Field() #站点信息
     product_id = scrapy.Field() #原网站ID
     product_urls = scrapy.Field() # 商品图片链接
@@ -246,9 +245,9 @@ class TrendUser(ScrapyprjItem):
     followings= scrapy.Field() #following的数量
     id = scrapy.Field() #user的ID
 
-#潮流的实体
-class TrendEntity(ScrapyprjItem):
-    user_id = scrapy.Field()
+#对应chicisimo这样的搭配潮流
+class TrendTag(ScrapyprjItem):
+    user_name = scrapy.Field()
     last_time = scrapy.Field()
     tags = scrapy.Field()
     brands = scrapy.Field()
@@ -259,7 +258,21 @@ class TrendEntity(ScrapyprjItem):
     like_count = scrapy.Field()#喜欢、点赞等
     save_count = scrapy.Field()#收藏、购物车等
     picture_urls = scrapy.Field()
-
+    id = scrapy.Field()
+    #db_name = 'trendtag'
+#潮流的实体,类似trendingStyle
+class TrendEntity(ScrapyprjItem):
+    last_time = scrapy.Field()
+    tags = scrapy.Field()
+    brands = scrapy.Field()
+    cate1 = scrapy.Field()
+    cate2 = scrapy.Field()
+    cate3 = scrapy.Field()
+    cate4 = scrapy.Field()
+    order_count = scrapy.Field()
+    picture_urls = scrapy.Field()
+    id = scrapy.Field()
+    #db_name = 'trenditem'
 
 
     def __repr__(self):

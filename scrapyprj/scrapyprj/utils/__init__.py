@@ -91,15 +91,13 @@ def getProvince_City(file_name):
         provinceMap['cityList'] = cityObjs
         cityList.append(provinceMap)
     return cityList
-    
+
 def joinList(strList,separator=',',replaceTag='#'):
     for i in range(0,len(strList)):
         strList[i] = strList[i].replace(replaceTag,'')
     return separator.join(strList)
 
 if __name__ == "__main__":
-    mapList = getExistList(
-        '/Users/xueliang.xl/work/getter/2016-05-24/output/xiaoqu_changsha.json')
-    for line in mapList:
-        print (line)
-        print ('-----------------')
+    mapList =  ["#tag1","#tag2","#tag3"]
+    result = joinList(mapList)
+    print (result)
