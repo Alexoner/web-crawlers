@@ -85,7 +85,7 @@ class TrendingSpider(scrapy.Spider):
     	pictureUrl = safe_extract(response.xpath("//img[@class='look-photo']/@src"))
         name = response.xpath("//p[@class='look-caption']/text()").extract()
         print ("first ->",name)
-        nameStr = ''
+        nameStr = '-'
         if name:
             nameStr = name[0]
         else:
@@ -113,7 +113,7 @@ class TrendingSpider(scrapy.Spider):
     	followers = re.search(r'([\d]+)',followers).group(1)
     	following = re.search(r'([\d]+)',following).group(1)
     	username = response.xpath("//h3/text()").extract()
-    	userStr = ''
+    	userStr = '-'
     	if username:
     		userStr = username[0]
         result = TrendUser()

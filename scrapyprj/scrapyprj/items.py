@@ -21,7 +21,7 @@ class ScrapyprjItem(scrapy.Item):
     
     def __repr__(self):
         """"""
-        return pformat({'url': str(self['url'])})
+        return pformat({'name': str(self['name'])})
     pass
 
 class TrafficTicketItem(ScrapyprjItem):
