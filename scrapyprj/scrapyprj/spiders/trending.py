@@ -110,8 +110,8 @@ class TrendingSpider(scrapy.Spider):
     def parse_chicisimo_user(self, response):
     	followers = safe_extract(response.xpath("//a[contains(@href,'followers')]/text()"))
     	following = safe_extract(response.xpath("//a[contains(@href,'following')]/text()"))
-    	followers = re.search(r'([\d]+)',followers)
-    	following = re.search(r'([\d]+)',following)
+    	followers = re.search(r'([\d]+)',followers).group(1)
+    	following = re.search(r'([\d]+)',following).group(1)
     	username = response.xpath("//h3/text()").extract()
     	userStr = ''
     	if username:
