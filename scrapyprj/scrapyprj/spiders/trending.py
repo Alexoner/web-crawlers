@@ -31,7 +31,6 @@ class TrendingSpider(scrapy.Spider):
             url = safe_extract(hrefList[i].xpath("@href"))
             tag = safe_extract(hrefList[i].xpath("text()"))
             param ={'tag':tag}
-            print ('home->generate:https://chicisimo.com',url)
             yield scrapy.Request("https://chicisimo.com"+url, callback = self.parse_chicisimo_detailseed, meta=param)
 
     def parse_chicisimo_detailseed(self, response):
@@ -96,7 +95,7 @@ class TrendingSpider(scrapy.Spider):
         result = TrendTag()
         result['db_name'] = 'trendtag'
         result['user_name'] =  url.split("/")[1]
-        result['last_time'] = time.time()
+        result['last_time'] = int(time.time())
         result['tags'] = tags
         result['brands'] = brands
         result['picture_urls'] = pictureUrl
@@ -122,6 +121,7 @@ class TrendingSpider(scrapy.Spider):
         result['followers'] = followers
         result['followings'] = following
         result['url'] = response.url
+        result['db_name'] = 'trenduser'
         yield result
 
 

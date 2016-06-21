@@ -112,7 +112,7 @@ class AreaStaticEntity(ScrapyprjItem):
     rend_count = scrapy.Field() #出租房数量
     longitude = scrapy.Field() #经度
     latitude = scrapy.Field() #纬度
-
+    #db_name = 'area_house'
 #小区的动态信息，如房价
 class AreaDynamicEntity(ScrapyprjItem):
     area_id = scrapy.Field() #小区的ID

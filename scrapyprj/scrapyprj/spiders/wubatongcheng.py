@@ -249,7 +249,7 @@ class WubatongchengSpider(scrapy.Spider):
         if description:
             result['description'] = description
         #指定logstash中对应的处理标记
-        result['db_name'] = 'areainfo'
+        result['db_name'] = 'area_house'
         yield result
 
     def parse(self, response):
