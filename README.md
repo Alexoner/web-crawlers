@@ -21,10 +21,45 @@ To run it,
 ### frontera for distributed crawling
 
 ### scrapyd as crawling daemon
+```shell
+cd /home/admin/work/scrapyd && su admin -c "nohup scrapyd" &
+```
+
+### deploy the scrapy project
+```shell
+scrapyd-deploy
+```
 
 ### sloth project for scheduler
+```shell
+curl http://127.0.0.1:6800/schedule.json -d project=scrapyrpj -d spider=dmoz
+```
+or use sloth to call the task
+
+```python
+from sloth_job.tasks.crawler import schedule_job
+res = schedule_job.delay('scrapyprj', 'dmoz', url='http://127.0.0.1:6800')
+print(res.get())
+```
 
 ### docker container as the production host
+
+if you have a container running scrapyd on its port 6800, you can run
+```shell
+wget http://container_ip:6800
+```
+To get the container´s ip address, run the 2 commands:
+```shell
+docker ps
+
+docker inspect container_name | grep IPAddress
+```
+Internally, Docker shells out to call iptables when you run an image, so maybe some variation on this will work.
+
+to expose the container's port 8000 on your localhosts port 8001
+```shell
+ iptables -t nat -A  DOCKER -p tcp --dport 6800 -j DNAT --to-destination 192.168.42.49:6800
+```
 
 ### use netrc file to configure username and password
 

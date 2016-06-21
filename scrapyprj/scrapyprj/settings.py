@@ -98,8 +98,8 @@ import os
 import time
 
 #  DIRNAME = os.path.dirname(__file__)
-OUTPUT_DIR = '{}/work/getter'.format(os.path.expanduser('~'))
-DIRNAME = '{}/work/getter/{}'.format(
+OUTPUT_DIR = '{}/work/scrapyd'.format(os.path.expanduser('~'))
+DIRNAME = '{}/work/scrapyd/{}'.format(
     os.path.expanduser('~'), time.strftime(
         '%Y-%m-%d', time.localtime()))
 try:
