@@ -1,7 +1,10 @@
+setuptools
 scrapy==1.1.0
+scrapyd==1.1.0
+scrapyd-client==1.0.1
 frontera[distributed,zeromq,sql]==0.4.2
-goose-extractor==1.0.25
-beautifulsoup4==4.4.1
+#goose-extractor==1.0.25
+#beautifulsoup4==4.4.1
 #proxybroker==0.1.4
-urlparse3==1.0.9
-newspaper3k==0.1.7
+#newspaper3k==0.1.7
+#git+https://github.com/Alexoner/sloth.git

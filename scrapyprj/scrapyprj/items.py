@@ -17,7 +17,8 @@ class ScrapyprjItem(scrapy.Item):
     description = scrapy.Field()
     crawl_time = scrapy.Field()  # 爬取时间
     html_document = scrapy.Field()  # 新闻的html文本
-
+    db_name = scrapy.Field() #索引的名称，或者是DB的名称，用来给logstash 文件来区分是那种类型的数据
+    
     def __repr__(self):
         """"""
         return pformat({'name': str(self['name'])})
@@ -111,7 +112,7 @@ class AreaStaticEntity(ScrapyprjItem):
     rend_count = scrapy.Field() #出租房数量
     longitude = scrapy.Field() #经度
     latitude = scrapy.Field() #纬度
-
+    #db_name = 'area_house'
 #小区的动态信息，如房价
 class AreaDynamicEntity(ScrapyprjItem):
     area_id = scrapy.Field() #小区的ID
@@ -189,7 +190,6 @@ class ProxyInfo(ScrapyprjItem):
    
 #商品信息
 class ProductInfo(ScrapyprjItem):
-
     site = scrapy.Field() #站点信息
     product_id = scrapy.Field() #原网站ID
     product_urls = scrapy.Field() # 商品图片链接
@@ -238,6 +238,42 @@ class ShopInfo(ScrapyprjItem):
     shop_address = scrapy.Field() # 店铺地址
     shop_contact = scrapy.Field() # 店铺联系方式
     extend_info = scrapy.Field() # 店铺扩展信息
+
+#潮流用户
+class TrendUser(ScrapyprjItem):
+    followers = scrapy.Field() #follower的数量
+    followings= scrapy.Field() #following的数量
+    id = scrapy.Field() #user的ID
+
+#对应chicisimo这样的搭配潮流
+class TrendTag(ScrapyprjItem):
+    user_name = scrapy.Field()
+    last_time = scrapy.Field()
+    tags = scrapy.Field()
+    brands = scrapy.Field()
+    cate1 = scrapy.Field()
+    cate2 = scrapy.Field()
+    cate3 = scrapy.Field()
+    cate4 = scrapy.Field()
+    like_count = scrapy.Field()#喜欢、点赞等
+    save_count = scrapy.Field()#收藏、购物车等
+    picture_urls = scrapy.Field()
+    id = scrapy.Field()
+    #db_name = 'trendtag'
+#潮流的实体,类似trendingStyle
+class TrendEntity(ScrapyprjItem):
+    last_time = scrapy.Field()
+    tags = scrapy.Field()
+    brands = scrapy.Field()
+    cate1 = scrapy.Field()
+    cate2 = scrapy.Field()
+    cate3 = scrapy.Field()
+    cate4 = scrapy.Field()
+    order_count = scrapy.Field()
+    picture_urls = scrapy.Field()
+    id = scrapy.Field()
+    #db_name = 'trenditem'
+
 
     def __repr__(self):
         """only print out attr1 after exiting the Pipeline"""

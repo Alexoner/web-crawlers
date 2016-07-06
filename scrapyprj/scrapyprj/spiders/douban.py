@@ -142,6 +142,7 @@ class DoubanSpider(scrapy.Spider):
         topic['reply_count'] = response.meta['reply_count']
         topic['pic_urls'] = pic_urls
         topic['content'] = content
+        topic['db_name'] = 'douban_topic'
         yield topic
 
         # 提取评论信息
@@ -173,4 +174,5 @@ class DoubanSpider(scrapy.Spider):
                     str(i) +
                     "]//div[contains(@class,'reply-doc')]/p/text()"))
             commentEntity['content'] = replyContent
+            commentEntity['db_name'] = 'douban_comment'
             yield commentEntity
